@@ -17,7 +17,8 @@ import { CsvUploaderModal } from './components/CsvUploaderModal';
 import { WalkForwardBacktestPanel } from './components/WalkForwardBacktestPanel';
 import { DataRequirementsModal } from './components/DataRequirementsModal';
 import { ResearchPaperViewer } from './components/ResearchPaperViewer';
-import { Smartphone, History, Activity, BookOpen, Database, Sparkles, TrendingUp, Award, ExternalLink } from 'lucide-react';
+import { LiveForecastLab } from './components/LiveForecastLab';
+import { Smartphone, History, Activity, BookOpen, Database, Sparkles, TrendingUp, Award, ExternalLink, Compass } from 'lucide-react';
 
 export default function App() {
   const [lang, setLang] = useState<'ar' | 'en'>('ar');
@@ -27,8 +28,8 @@ export default function App() {
   const [fractionalOrderD, setFractionalOrderD] = useState<number>(0.40);
   const [hurstWindow, setHurstWindow] = useState<number>(25);
 
-  // Active view tab: 'terminal' | 'backtest' | 'spec' | 'data'
-  const [activeTab, setActiveTab] = useState<'terminal' | 'backtest' | 'spec' | 'data'>('terminal');
+  // Active view tab: 'terminal' | 'live' | 'backtest' | 'spec' | 'data'
+  const [activeTab, setActiveTab] = useState<'terminal' | 'live' | 'backtest' | 'spec' | 'data'>('terminal');
 
   // Mobile View Simulator toggle (for desktop review)
   const [isMobileView, setIsMobileView] = useState<boolean>(false);
@@ -189,7 +190,20 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 2: Dedicated Walk-Forward Backtest Simulator (Project 80%) */}
+          {/* TAB 2: Live Real-Time Forecast Lab (2-3 Hours Test) */}
+          {activeTab === 'live' && (
+            <div className="space-y-6">
+              <LiveForecastLab
+                instrument={selectedInstrument}
+                metrics={metrics}
+                lastPoint={lastPoint}
+                currentD={fractionalOrderD}
+                lang={lang}
+              />
+            </div>
+          )}
+
+          {/* TAB 3: Dedicated Walk-Forward Backtest Simulator (Project 80%) */}
           {activeTab === 'backtest' && (
             <div className="space-y-6">
               <WalkForwardBacktestPanel
@@ -258,7 +272,7 @@ export default function App() {
       />
 
       {/* Mobile Sticky Quick Navigation Bar for Phones */}
-      <div className="sm:hidden sticky bottom-0 z-30 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 px-4 py-2 flex items-center justify-around text-[10px] font-medium" dir={isAr ? 'rtl' : 'ltr'}>
+      <div className="sm:hidden sticky bottom-0 z-30 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 px-3 py-2 flex items-center justify-around text-[10px] font-medium" dir={isAr ? 'rtl' : 'ltr'}>
         <button
           onClick={() => setActiveTab('terminal')}
           className={`flex flex-col items-center gap-1 py-1 px-2 rounded-lg ${
@@ -267,6 +281,15 @@ export default function App() {
         >
           <Activity className="w-4 h-4" />
           <span>{isAr ? 'التحليل' : 'Terminal'}</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('live')}
+          className={`flex flex-col items-center gap-1 py-1 px-2 rounded-lg ${
+            activeTab === 'live' ? 'text-emerald-400 font-bold' : 'text-slate-400'
+          }`}
+        >
+          <Sparkles className="w-4 h-4 text-emerald-400" />
+          <span>{isAr ? 'تجربة حية' : 'Live'}</span>
         </button>
         <button
           onClick={() => setActiveTab('backtest')}

@@ -8,8 +8,8 @@ interface Props {
   onSelectInstrument: (inst: Instrument) => void;
   activeCategory: AssetCategory;
   onSelectCategory: (cat: AssetCategory) => void;
-  activeTab: 'terminal' | 'backtest' | 'spec' | 'data';
-  onSelectTab: (tab: 'terminal' | 'backtest' | 'spec' | 'data') => void;
+  activeTab: 'terminal' | 'live' | 'backtest' | 'spec' | 'data';
+  onSelectTab: (tab: 'terminal' | 'live' | 'backtest' | 'spec' | 'data') => void;
   isMobileView: boolean;
   onToggleMobileView: () => void;
   lang: 'ar' | 'en';
@@ -171,7 +171,20 @@ export const Header: React.FC<Props> = ({
               }`}
             >
               <Activity className="w-3.5 h-3.5" />
-              <span>{isAr ? 'المحطة اللحظية والرسوم' : 'Terminal & Charts'}</span>
+              <span>{isAr ? 'المحطة والرسوم' : 'Terminal'}</span>
+            </button>
+
+            <button
+              id="tab-live-btn"
+              onClick={() => onSelectTab('live')}
+              className={`px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 ${
+                activeTab === 'live'
+                  ? 'bg-emerald-600 text-white shadow-sm font-semibold'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-emerald-300" />
+              <span>{isAr ? 'مختبر التنبؤ الحي (2-3 ساعات)' : 'Live Forecast Lab'}</span>
             </button>
 
             <button

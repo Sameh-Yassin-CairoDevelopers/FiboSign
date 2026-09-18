@@ -48,12 +48,13 @@ export const CsvUploaderModal: React.FC<Props> = ({ isOpen, onClose, onCustomDat
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        if (i === 0 && (line.toLowerCase().includes('date') || line.toLowerCase().includes('close') || line.toLowerCase().includes('price'))) {
+        if (i === 0 && (line.toLowerCase().includes('date') || line.toLowerCase().includes('close') || line.toLowerCase().includes('price') || line.toLowerCase().includes('سعر'))) {
           continue; // Skip header
         }
 
-        const parts = line.split(/[,\t;]+/).map((p) => p.trim());
+        const parts = line.split(/[,\t;\s]+/).map((p) => p.trim()).filter((p) => p.length > 0);
         if (parts.length >= 2) {
+          // Date, Close (or more columns)
           const date = parts[0];
           const close = parseFloat(parts[1]);
           if (!isNaN(close)) {
@@ -65,11 +66,24 @@ export const CsvUploaderModal: React.FC<Props> = ({ isOpen, onClose, onCustomDat
               close,
             });
           }
+        } else if (parts.length === 1) {
+          // Single-column raw price input!
+          const close = parseFloat(parts[0]);
+          if (!isNaN(close)) {
+            const simulatedDate = new Date(Date.now() - (lines.length - i) * 86400000).toISOString().split('T')[0];
+            bars.push({
+              date: simulatedDate,
+              open: close,
+              high: close,
+              low: close,
+              close,
+            });
+          }
         }
       }
 
       if (bars.length < 5) {
-        throw new Error(isAr ? 'تعذر استخراج أسعار صالحة من النص. تأكد من الصيغة: Date,Close' : 'Could not parse valid prices. Ensure format: Date,Close');
+        throw new Error(isAr ? 'تعذر استخراج أسعار صالحة من النص. يمكنك لصق عمود أرقام أسعار فقط، أو صيغة: Date,Close' : 'Could not parse valid prices. Paste either single-column prices or Date,Close.');
       }
 
       const customInst: Instrument = {
@@ -162,23 +176,37 @@ export const CsvUploaderModal: React.FC<Props> = ({ isOpen, onClose, onCustomDat
               </div>
 
               <div>
-                <div className="flex justify-between items-center mb-1">
+                <div className="flex justify-between items-center mb-1 flex-wrap gap-1">
                   <label className="text-xs text-slate-400">
-                    {isAr ? 'ألصق البيانات بصيغة (Date,Close):' : 'Paste CSV lines (Date,Close):'}
+                    {isAr ? 'ألصق بيانات الأسعار (عمود أرقام فردي أو Date,Close):' : 'Paste prices (single column or Date,Close):'}
                   </label>
-                  <button
-                    type="button"
-                    onClick={() => setInputText(sampleCsv)}
-                    className="text-[11px] text-cyan-400 hover:underline"
-                  >
-                    {isAr ? 'تحميل نموذج تجريبي' : 'Load Sample Data'}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAssetName('TMGH.CA');
+                        setCurrency('EGP');
+                        setInputText(`68.5\n69.2\n71.0\n70.4\n73.8\n76.5\n75.0\n78.2\n82.0\n80.5\n84.1\n88.0\n86.5\n91.0\n94.2`);
+                      }}
+                      className="text-[11px] text-indigo-300 hover:text-white underline"
+                    >
+                      {isAr ? 'مثال: عمود أسعار سهم مصري' : 'Sample: EGX Stock Column'}
+                    </button>
+                    <span className="text-slate-600">•</span>
+                    <button
+                      type="button"
+                      onClick={() => setInputText(sampleCsv)}
+                      className="text-[11px] text-cyan-400 hover:underline"
+                    >
+                      {isAr ? 'نموذج كامل (Date,Close)' : 'Full (Date,Close)'}
+                    </button>
+                  </div>
                 </div>
                 <textarea
                   rows={8}
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
-                  placeholder={sampleCsv}
+                  placeholder={isAr ? "الصق هنا عمود الأسعار مباشرة من ميتاتريدر أو إكسيل:\n54.2\n55.0\n54.8\n56.1\n..." : sampleCsv}
                   className="w-full bg-slate-950 font-mono text-xs text-slate-200 border border-slate-800 rounded-lg p-3 focus:outline-none focus:ring-1 focus:ring-cyan-500 leading-relaxed"
                 />
               </div>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FiboSign - النسخة المستقلة الخالصة (Pure Vanilla HTML/JS)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 lg:p-8">
+  <div class="max-w-5xl mx-auto space-y-6">
+    <!-- Header -->
+    <header class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
+          <span class="p-2 rounded-xl bg-indigo-600 text-white text-sm">FiboSign</span>
+          <span>محرك الذاكرة الكسرية وهيرست (Pure Vanilla)</span>
+        </h1>
+        <p class="text-xs text-slate-400 mt-1">
+          نسخة مستقلة تماماً بدون أي مكتبات بناء (No Build Tools, No Node) • تعمل مباشرة على أي متصفح أو جيت هاب بيجز
+        </p>
+      </div>
+      <div class="text-xs font-mono text-cyan-400 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
+        مشروع الـ 80% • م. سامح ياسين
+      </div>
+    </header>
+
+    <!-- Real-Time Testing & Forecast Card (2-3 Hours) -->
+    <div class="bg-slate-900 border border-indigo-600/40 rounded-2xl p-5 shadow-xl space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-base font-bold text-indigo-300 flex items-center gap-2">
+          <span>⚡ مختبر التنبؤ اللحظي للساعتين أو الثلاث القادمة</span>
+        </h2>
+        <span class="text-xs text-emerald-400 font-bold bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-800">
+          جاهز للتجربة الحية على حسابك
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">السعر اللحظي الحالي (Live Quote):</label>
+          <input id="live-price-input" type="number" step="any" value="31.85" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white font-mono text-base font-bold focus:border-cyan-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">الرتبة الكسرية (d):</label>
+          <input id="d-param" type="range" min="0.1" max="0.9" step="0.05" value="0.40" class="w-full">
+          <div class="text-xs text-cyan-400 font-mono text-end" id="d-val-display">d = 0.40</div>
+        </div>
+        <button onclick="runCalculations()" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition-all text-xs">
+          حساب التوقع والهدف اللحظي
+        </button>
+      </div>
+
+      <!-- Forecast Results Panel -->
+      <div id="forecast-card" class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-800 text-xs">
+        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+          <div class="text-slate-400 mb-1">الاتجاه التنبؤي المتوقع:</div>
+          <div id="res-direction" class="text-base font-bold text-emerald-400 font-mono">BULLISH / صعود</div>
+        </div>
+        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+          <div class="text-slate-400 mb-1">الهدف السعري (Take Profit):</div>
+          <div id="res-target" class="text-base font-bold text-white font-mono">32.65</div>
+        </div>
+        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+          <div class="text-slate-400 mb-1">وقف انكسار الذاكرة (Stop Loss):</div>
+          <div id="res-stop" class="text-base font-bold text-rose-400 font-mono">31.35</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Input Box (For Single-Action Users) -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-bold text-white">إدخال قائمة أسعار سريعة (لصق مباشر من ميتاتريدر أو إكسيل)</h3>
+        <button onclick="loadSampleData()" class="text-xs text-cyan-400 hover:underline">تحميل عينة سهم مصري / فضة</button>
+      </div>
+      <textarea id="prices-input" rows="5" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-cyan-500" placeholder="أدخل عمود أسعار مفصولاً بأسطر جديدة..."></textarea>
+      <button onclick="runCalculations()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg">
+        تحديث التحليل ورسم المنحنى
+      </button>
+    </div>
+
+    <!-- HTML5 Canvas Chart -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+      <h3 class="text-sm font-bold text-white">الرسم البياني لمنحنى الأسعار والمشتقة الكسرية (Pure Canvas)</h3>
+      <div class="w-full h-64 bg-slate-950 rounded-xl overflow-hidden relative">
+        <canvas id="marketChart" class="w-full h-full"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const samplePrices = [28.5, 28.8, 29.1, 28.9, 29.4, 30.1, 29.8, 30.5, 31.2, 30.9, 31.4, 31.85];
+    document.getElementById('prices-input').value = samplePrices.join('\n');
+
+    const dSlider = document.getElementById('d-param');
+    dSlider.addEventListener('input', (e) => {
+      document.getElementById('d-val-display').innerText = 'd = ' + parseFloat(e.target.value).toFixed(2);
+      runCalculations();
+    });
+
+    function loadSampleData() {
+      document.getElementById('prices-input').value = samplePrices.join('\n');
+      runCalculations();
+    }
+
+    // Mathematical Implementation of Binomial Coefficients for Fractional Differentiation
+    function computeWeights(d, length = 15) {
+      const w = [1.0];
+      for (let k = 1; k < length; k++) {
+        w.push(-w[k - 1] * ((d - k + 1) / k));
+      }
+      return w;
+    }
+
+    function fractionalDiff(series, d) {
+      const w = computeWeights(d, 20);
+      const res = [];
+      for (let i = 0; i < series.length; i++) {
+        let sum = 0;
+        for (let k = 0; k < w.length; k++) {
+          if (i - k >= 0) {
+            sum += w[k] * series[i - k];
+          }
+        }
+        res.push(sum);
+      }
+      return res;
+    }
+
+    function computeHurst(series) {
+      if (series.length < 8) return 0.55;
+      const n = series.length;
+      const mean = series.reduce((a, b) => a + b, 0) / n;
+      const deviations = series.map(x => x - mean);
+      let maxDev = -Infinity, minDev = Infinity;
+      let cum = 0;
+      deviations.forEach(d => {
+        cum += d;
+        if (cum > maxDev) maxDev = cum;
+        if (cum < minDev) minDev = cum;
+      });
+      const range = maxDev - minDev;
+      const std = Math.sqrt(deviations.reduce((a, b) => a + b * b, 0) / n);
+      if (std === 0) return 0.5;
+      const rs = range / std;
+      return Math.min(0.85, Math.max(0.35, Math.log(rs) / Math.log(n * 0.5)));
+    }
+
+    function runCalculations() {
+      const text = document.getElementById('prices-input').value.trim();
+      let prices = text.split('\n').map(l => parseFloat(l.trim())).filter(n => !isNaN(n));
+      if (prices.length < 3) prices = samplePrices;
+
+      const liveP = parseFloat(document.getElementById('live-price-input').value) || prices[prices.length - 1];
+      const d = parseFloat(document.getElementById('d-param').value);
+
+      const fd = fractionalDiff(prices, d);
+      const lastFd = fd[fd.length - 1];
+      const hurst = computeHurst(prices);
+
+      const isBullish = lastFd >= 0;
+      const targetP = isBullish ? liveP + (liveP * 0.025) : liveP - (liveP * 0.025);
+      const stopP = isBullish ? liveP - (liveP * 0.015) : liveP + (liveP * 0.015);
+
+      const dirEl = document.getElementById('res-direction');
+      dirEl.innerText = isBullish ? 'BULLISH / صعود قوي' : 'BEARISH / هبوط';
+      dirEl.className = isBullish ? 'text-base font-bold text-emerald-400 font-mono' : 'text-base font-bold text-rose-400 font-mono';
+
+      document.getElementById('res-target').innerText = targetP.toFixed(4);
+      document.getElementById('res-stop').innerText = stopP.toFixed(4);
+
+      drawCanvas(prices, fd);
+    }
+
+    function drawCanvas(prices, fd) {
+      const canvas = document.getElementById('marketChart');
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio || 600;
+      canvas.height = rect.height * window.devicePixelRatio || 250;
+      ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+
+      const w = rect.width;
+      const h = rect.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Price curve
+      const minP = Math.min(...prices) * 0.98;
+      const maxP = Math.max(...prices) * 1.02;
+      const stepX = w / (prices.length - 1);
+
+      ctx.beginPath();
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2.5;
+      prices.forEach((p, i) => {
+        const x = i * stepX;
+        const y = h - ((p - minP) / (maxP - minP)) * (h - 30) - 15;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // Draw dots
+      prices.forEach((p, i) => {
+        const x = i * stepX;
+        const y = h - ((p - minP) / (maxP - minP)) * (h - 30) - 15;
+        ctx.beginPath();
+        ctx.fillStyle = '#0284c7';
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    window.addEventListener('resize', runCalculations);
+    setTimeout(runCalculations, 100);
+  </script>
+</body>
+</html>
