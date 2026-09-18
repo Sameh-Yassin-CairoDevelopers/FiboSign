@@ -1,18 +1,223 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Fractional Dynamics & Market Memory Engine</title>
-    <meta name="description" content="A quantitative mathematical engine computing fractional-order derivatives, rolling Hurst exponents, and long-memory phase transitions for financial markets including Silver, Gold, and the Egyptian Exchange (EGX)." />
-    <meta property="og:title" content="Fractional Dynamics & Market Memory Engine" />
-    <meta property="og:description" content="A quantitative mathematical engine computing fractional-order derivatives, rolling Hurst exponents, and long-memory phase transitions for financial markets including Silver, Gold, and the Egyptian Exchange (EGX)." />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FiboSign - Fractional Dynamics & Market Memory Engine</title>
+  <meta name="description" content="محرك الذاكرة الكسرية وهيرست للتداول الكمي والتنبؤ اللحظي للذهب والفضة والأسهم المصرية والعملات - م. سامح ياسين" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="container">
+    <!-- 1. Header Bar -->
+    <header class="app-header">
+      <div class="brand-section">
+        <div class="brand-logo">FiboSign</div>
+        <div>
+          <h1 class="brand-title">محرك الذاكرة الكسرية وهيرست (Vanilla Engine)</h1>
+          <p class="brand-subtitle">نظام التنبؤ اللحظي الكمي متعدد الآفاق • مشروع الـ 80% • م. سامح ياسين</p>
+        </div>
+      </div>
 
+      <div class="header-actions">
+        <button id="openSettingsBtn" class="btn btn-secondary">
+          ⚙️ <span>إعدادات الـ APIs والمفاتيح</span>
+        </button>
+        <button id="langToggleBtn" class="btn btn-secondary">
+          English
+        </button>
+      </div>
+    </header>
+
+    <!-- 2. One-Click Asset Selection Bar -->
+    <nav class="asset-selector-bar">
+      <div class="asset-chips">
+        <button class="chip active" data-asset="gold">🟡 الذهب (Gold XAU)</button>
+        <button class="chip" data-asset="silver">⚪ الفضة (Silver XAG)</button>
+        <button class="chip" data-asset="tmgh">🏢 طلعت مصطفى (TMGH)</button>
+        <button class="chip" data-asset="cib">🏦 التجاري الدولي (CIB)</button>
+        <button class="chip" data-asset="btc">🪙 البيتكوين (BTC/USDT)</button>
+      </div>
+      <div class="live-indicator">
+        <span class="live-dot"></span>
+        <span id="apiStatusBadge">API متصل جاهز</span>
+      </div>
+    </nav>
+
+    <!-- 3. Main Operational Grid -->
+    <main class="grid-main">
+      <!-- Left Sidebar: Parameters & Decision Box -->
+      <section class="card">
+        <div class="card-title">
+          <span>لوحة التحكم والتنبؤ اللحظي</span>
+          <span class="live-indicator" style="font-size: 10px;">Zero-Lag</span>
+        </div>
+
+        <!-- Current Live Quote Input -->
+        <div class="form-group">
+          <label class="form-label">
+            <span>سعر السوق اللحظي الآن (Live Quote):</span>
+            <span id="currencyLabel" class="metric-val">USD</span>
+          </label>
+          <input type="number" step="any" id="liveQuoteInput" class="form-input mono" placeholder="أدخل السعر الحالي..." />
+        </div>
+
+        <!-- Time Horizon Selector (1h, 3h, 1d) -->
+        <div class="form-group">
+          <label class="form-label">أفق التوقع الزمني المستهدف:</label>
+          <div class="horizon-selector">
+            <button class="horizon-btn" data-horizon="1h">ساعة واحدة</button>
+            <button class="horizon-btn active" data-horizon="3h">3 ساعات</button>
+            <button class="horizon-btn" data-horizon="1d">الغد / يوم</button>
+          </div>
+        </div>
+
+        <!-- Fractional Order (d) Slider -->
+        <div class="form-group">
+          <div class="form-label">
+            <span>رتبة التفاضل الكسري (Order d):</span>
+            <span id="dValDisplay" class="metric-val">d = 0.40</span>
+          </div>
+          <input type="range" id="dSlider" min="0.10" max="0.90" step="0.05" value="0.40" class="form-input" style="padding: 4px;" />
+        </div>
+
+        <!-- Real-Time Prediction Box (Hero Decision) -->
+        <div id="predictionBox" class="prediction-box bullish">
+          <div class="prediction-header">
+            <span id="signalBadge" class="signal-badge buy">شراء قوي / BUY</span>
+            <span id="confidenceValue" style="font-family: var(--font-mono); font-weight: 800; font-size: 14px; color: var(--accent-cyan);">78%</span>
+          </div>
+
+          <p id="biasDescription" style="font-size: 12px; line-height: 1.6; color: var(--text-main);">
+            عزم شرائي قوي ذو ذاكرة حركية ممتدة.
+          </p>
+
+          <div class="levels-grid">
+            <div class="level-card">
+              <div class="level-title">الهدف المتوقع (Take Profit)</div>
+              <div id="tpValue" class="level-value tp">---</div>
+            </div>
+            <div class="level-card">
+              <div class="level-title">وقف انكسار الذاكرة (Stop Loss)</div>
+              <div id="slValue" class="level-value sl">---</div>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; font-size: 11px; padding-top: 4px; border-top: 1px solid #1e293b;">
+            <span id="hurstValue" style="color: var(--accent-amber); font-family: var(--font-mono); font-weight: 700;">H = 0.65</span>
+            <span style="color: var(--text-dim);">هدف النموذج: 75% - 80% دقة</span>
+          </div>
+        </div>
+
+        <!-- Action: Record Trial -->
+        <button id="recordTradeBtn" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px;">
+          📝 <span>تسجيل التجربة ومتابعة النتيجة الحية</span>
+        </button>
+
+        <!-- Fast Raw Data Insertion (للي داخل يحط عمود أسعار ويمشي) -->
+        <div class="paste-box">
+          <div class="form-label" style="margin-bottom: 6px;">
+            <span>إدخال عمود أسعار فردي (إكسيل / MT4):</span>
+          </div>
+          <textarea id="rawPriceTextarea" class="form-textarea" rows="3" placeholder="ألصق عمود أرقام الأسعار هنا مباشرة:&#10;31.2&#10;31.8&#10;32.0"></textarea>
+          <button id="parseRawBtn" class="btn btn-secondary" style="width: 100%; justify-content: center; margin-top: 6px; font-size: 11px;">
+            ⚡ <span>تطبيق الحسابات على البيانات الملصقة فوراً</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Right Column: Interactive Chart & Experimentation Log -->
+      <section style="display: flex; flex-direction: column; gap: 16px;">
+        <!-- Pure Canvas Chart -->
+        <div class="card">
+          <div class="card-title">
+            <span>المنحنى البياني ومسار المشتقة الكسرية ومستويات الأهداف</span>
+            <span style="font-size: 11px; font-family: var(--font-mono); color: var(--accent-cyan);">Canvas 2D Dual-Axis</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="marketCanvas"></canvas>
+          </div>
+        </div>
+
+        <!-- 300-400 Experiments Live Log Tracker -->
+        <div class="card">
+          <div class="card-title">
+            <span>سجل التجارب الحية وتوثيق الدقة الإحصائية</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span id="hitRateStats" class="live-indicator" style="color: var(--accent-cyan); border-color: rgba(56, 189, 248, 0.3);">إجمالي: 0</span>
+              <button id="clearTradesBtn" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">مسح السجل</button>
+            </div>
+          </div>
+
+          <div class="trades-table-wrap">
+            <table class="trades-table">
+              <thead>
+                <tr>
+                  <th>الوقت</th>
+                  <th>الأصل</th>
+                  <th>الاتجاه</th>
+                  <th>سعر الدخول</th>
+                  <th>الهدف (TP)</th>
+                  <th>الوقف (SL)</th>
+                  <th>النتيجة / الإجراء</th>
+                </tr>
+              </thead>
+              <tbody id="tradesTbody">
+                <!-- Injected via script.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      منظومة FiboSign للديناميكا الكسرية وتحليل الذاكرة طويلة المدى • م. سامح ياسين • 2026
+    </footer>
+  </div>
+
+  <!-- Settings & API Modal -->
+  <div id="settingsModal" class="modal-backdrop">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 style="font-size: 15px; font-weight: 700; color: #fff;">⚙️ إعدادات مزودي البيانات والـ APIs</h3>
+        <button id="closeSettingsBtn" class="modal-close">&times;</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">
+          <span>مفتاح Twelve Data API (مجاني للمعادن والأسهم والعملات):</span>
+          <a href="https://twelvedata.com" target="_blank" style="color: var(--accent-cyan); text-decoration: none;">احصل على مفتاح مجاني</a>
+        </label>
+        <input type="text" id="twelveApiKeyInput" class="form-input mono" placeholder="أدخل مفتاح الـ API الخاص بك هنا..." />
+        <p style="font-size: 11px; color: var(--text-dim); margin-top: 4px;">
+          موقع Twelve Data يوفر 800 استدعاء يومياً مجاناً للذهب، الفضة، والأسهم العالمية.
+        </p>
+      </div>
+
+      <div class="form-group" style="padding: 12px; background: #020617; border-radius: 8px; border: 1px solid var(--border-color);">
+        <h4 style="font-size: 12px; font-weight: 700; color: var(--accent-emerald); margin-bottom: 4px;">✅ Binance Public API (نشط تلقائياً بدون مفتاح):</h4>
+        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.5;">
+          الذهب (PAXGUSDT) والعملات المشفرة تجلب أسعارها اللحظية وتاريخها البياني تلقائياً ومجاناً 100% دون الحاجة لأي تسجيل.
+        </p>
+      </div>
+
+      <div class="form-group" style="padding: 12px; background: #020617; border-radius: 8px; border: 1px solid var(--border-color);">
+        <h4 style="font-size: 12px; font-weight: 700; color: var(--accent-indigo); margin-bottom: 4px;">🇪🇬 بيانات البورصة المصرية (EGX):</h4>
+        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.5;">
+          تحتوي المنصة على السلاسل السعرية لطلعت مصطفى والتجاري الدولي وأبو قير، ويمكنك تحديث السعر اللحظي في أي ثانية من خلال خانة السعر اللحظي أو لصق البيانات.
+        </p>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
+        <button id="saveApiKeysBtn" class="btn btn-primary" style="padding: 10px 20px;">
+          حفظ المفاتيح وتفعيل الـ API
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./script.js"></script>
+</body>
+</html>
