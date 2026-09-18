@@ -20,18 +20,47 @@ export interface FractionalResultPoint {
   signalReason?: string;
 }
 
+export type AssetCategory = 'all' | 'metal' | 'egx' | 'forex' | 'nft' | 'otc';
+
 export interface Instrument {
   id: string;
   name: string;
   nameAr: string;
   symbol: string;
-  category: 'metal' | 'egx' | 'forex';
+  category: 'metal' | 'egx' | 'forex' | 'nft' | 'otc';
   currency: string;
   description: string;
   descriptionAr: string;
   historicalContext: string;
   historicalContextAr: string;
   data: MarketBar[];
+}
+
+export interface BacktestTrade {
+  index: number;
+  date: string;
+  predictedDirection: 'UP' | 'DOWN';
+  entryPrice: number;
+  exitPrice: number;
+  actualReturnPct: number;
+  isCorrect: boolean;
+  hurstAtEntry: number;
+  fracDiffAtEntry: number;
+  confidenceScore: number; // 0 - 100%
+  rationaleAr: string;
+  rationaleEn: string;
+}
+
+export interface BacktestSummary {
+  cutoffIndex: number;
+  cutoffDate: string;
+  totalPredictions: number;
+  successfulPredictions: number;
+  hitRatePct: number; // e.g., 78.6%
+  profitFactor: number; // e.g., 2.35
+  cumulativeReturnPct: number; // e.g., +44.2%
+  maxDrawdownPct: number; // e.g., -6.8%
+  trades: BacktestTrade[];
 }
 
 export interface FractionalConfig {

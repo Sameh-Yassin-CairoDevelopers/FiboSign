@@ -336,3 +336,129 @@ export function processMarketSeries(
 
   return { points, metrics, weights };
 }
+
+/**
+ * Walk-Forward Out-of-Sample Historical Simulation (Time Machine)
+ * Simulates real-time decisions at each historical bar from cutoff to end
+ * without any look-ahead bias.
+ */
+export function runWalkForwardBacktest(
+  bars: MarketBar[],
+  orderD: number,
+  hurstWindow: number,
+  cutoffIndex: number
+): import('../types').BacktestSummary {
+  const n = bars.length;
+  const safeCutoff = Math.max(5, Math.min(cutoffIndex, n - 2));
+  const prices = bars.map((b) => b.close);
+
+  const trades: import('../types').BacktestTrade[] = [];
+  let correctCount = 0;
+  let totalWins = 0;
+  let totalLosses = 0;
+  let cumulativeEquity = 1.0;
+  let peakEquity = 1.0;
+  let maxDrawdown = 0;
+
+  for (let t = safeCutoff; t < n - 1; t++) {
+    // Sliced data up to t (strictly historical, zero future leak)
+    const historySlice = prices.slice(0, t + 1);
+    const fracDiffSlice = applyFractionalDiff(historySlice, orderD);
+    const windowStart = Math.max(0, t - hurstWindow + 1);
+    const hurst = computeHurstExponent(historySlice.slice(windowStart, t + 1));
+
+    const currentPrice = prices[t];
+    const nextPrice = prices[t + 1];
+    const actualReturnPct = ((nextPrice - currentPrice) / currentPrice) * 100;
+
+    // Fractional signal generation at t
+    const currentFrac = fracDiffSlice[t];
+    const prevFrac = t > 0 ? fracDiffSlice[t - 1] : currentFrac;
+    const fracTrend = currentFrac - prevFrac;
+
+    let predictedDirection: 'UP' | 'DOWN' = 'UP';
+    let confidence = 70;
+    let rationaleAr = '';
+    let rationaleEn = '';
+
+    if (hurst > 0.52) {
+      // Persistent regime: memory momentum continuation
+      if (fracTrend >= 0) {
+        predictedDirection = 'UP';
+        confidence = Math.min(88, Math.round(55 + hurst * 35));
+        rationaleAr = `استمرار زخم الذاكرة الصاعد (H=${hurst.toFixed(2)} > 0.52)`;
+        rationaleEn = `Persistent upward memory momentum (H=${hurst.toFixed(2)})`;
+      } else {
+        predictedDirection = 'DOWN';
+        confidence = Math.min(88, Math.round(55 + hurst * 35));
+        rationaleAr = `استمرار زخم الذاكرة الهابط (H=${hurst.toFixed(2)} > 0.52)`;
+        rationaleEn = `Persistent downward memory momentum (H=${hurst.toFixed(2)})`;
+      }
+    } else {
+      // Mean-reversion regime: sub-diffusive rebound
+      const avg3 = (fracDiffSlice[t] + fracDiffSlice[t - 1] + (t > 1 ? fracDiffSlice[t - 2] : fracDiffSlice[t])) / 3;
+      if (currentFrac < avg3) {
+        predictedDirection = 'UP';
+        confidence = Math.min(82, Math.round(50 + (1 - hurst) * 40));
+        rationaleAr = `ارتداد كسرى نحو متوسط الذاكرة (H=${hurst.toFixed(2)} < 0.52)`;
+        rationaleEn = `Mean-reverting fractional snapback (H=${hurst.toFixed(2)})`;
+      } else {
+        predictedDirection = 'DOWN';
+        confidence = Math.min(82, Math.round(50 + (1 - hurst) * 40));
+        rationaleAr = `تراجع ارتدادي بعد تشبع الذاكرة (H=${hurst.toFixed(2)} < 0.52)`;
+        rationaleEn = `Mean-reverting pullback from memory crest (H=${hurst.toFixed(2)})`;
+      }
+    }
+
+    const isCorrect =
+      (predictedDirection === 'UP' && actualReturnPct >= 0) ||
+      (predictedDirection === 'DOWN' && actualReturnPct <= 0);
+
+    if (isCorrect) {
+      correctCount++;
+      const gain = Math.abs(actualReturnPct);
+      totalWins += gain;
+      cumulativeEquity *= 1 + gain / 100;
+    } else {
+      const loss = Math.abs(actualReturnPct);
+      totalLosses += loss;
+      cumulativeEquity *= 1 - loss / 100;
+    }
+
+    if (cumulativeEquity > peakEquity) peakEquity = cumulativeEquity;
+    const currentDrawdown = ((peakEquity - cumulativeEquity) / peakEquity) * 100;
+    if (currentDrawdown > maxDrawdown) maxDrawdown = currentDrawdown;
+
+    trades.push({
+      index: t,
+      date: bars[t].date,
+      predictedDirection,
+      entryPrice: currentPrice,
+      exitPrice: nextPrice,
+      actualReturnPct: Math.round(actualReturnPct * 100) / 100,
+      isCorrect,
+      hurstAtEntry: Math.round(hurst * 100) / 100,
+      fracDiffAtEntry: Math.round(currentFrac * 100) / 100,
+      confidenceScore: confidence,
+      rationaleAr,
+      rationaleEn,
+    });
+  }
+
+  const totalPredictions = trades.length;
+  const hitRatePct = totalPredictions > 0 ? Math.round((correctCount / totalPredictions) * 1000) / 10 : 0;
+  const profitFactor = totalLosses > 0 ? Math.round((totalWins / totalLosses) * 100) / 100 : totalWins > 0 ? 3.5 : 1.0;
+  const cumulativeReturnPct = Math.round((cumulativeEquity - 1.0) * 1000) / 10;
+
+  return {
+    cutoffIndex: safeCutoff,
+    cutoffDate: bars[safeCutoff].date,
+    totalPredictions,
+    successfulPredictions: correctCount,
+    hitRatePct,
+    profitFactor,
+    cumulativeReturnPct,
+    maxDrawdownPct: Math.round(maxDrawdown * 10) / 10,
+    trades,
+  };
+}
