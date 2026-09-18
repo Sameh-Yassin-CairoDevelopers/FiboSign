@@ -122,7 +122,7 @@ export const TheoreticalComparisonModal: React.FC<Props> = ({ isOpen, onClose, l
                       : '2. Difference from Fibonacci Retracements'}
                   </span>
                 </div>
-                <p className="text-slate-300">
+                <div className="text-slate-300">
                   {isAr ? (
                     <>
                       فيبوناتشي أداة هندسية <strong>سكونية (Static Topological Grid)</strong> تفترض أن السعر سيرتد عند نسب عددية ثابتة (0.382، 0.618، 1.618) مستمدة من نهاية متتالية فيبوناتشي.
@@ -144,7 +144,7 @@ export const TheoreticalComparisonModal: React.FC<Props> = ({ isOpen, onClose, l
                       </ul>
                     </>
                   )}
-                </p>
+                </div>
               </div>
 
               {/* Section 3: The Myth of 99% vs Realistic Edge */}
