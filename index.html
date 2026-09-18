@@ -48,15 +48,46 @@
       </div>
     </section>
 
-    <!-- 3. One-Click Asset Selection Bar -->
+    <!-- 3. Modern Asset Dropdown Toolbar (Unified Dynamic Controller) -->
     <nav class="asset-selector-bar">
-      <div class="asset-chips">
-        <button class="chip active" data-asset="gold">🟡 الذهب (Gold XAU)</button>
-        <button class="chip" data-asset="silver">⚪ الفضة (Silver XAG)</button>
-        <button class="chip" data-asset="tmgh">🏢 طلعت مصطفى (TMGH.CA)</button>
-        <button class="chip" data-asset="cib">🏦 التجاري الدولي (COMI.CA)</button>
-        <button class="chip" data-asset="btc">🪙 البيتكوين (BTC/USDT)</button>
-        <button class="chip" data-asset="oil">🛢️ نفط برنت (Brent)</button>
+      <div class="asset-dropdown-group">
+        <label for="assetSelectDropdown" class="asset-dropdown-label">
+          <span>⚡ الأصل المالي المستهدف:</span>
+        </label>
+        <select id="assetSelectDropdown" class="asset-select-styled">
+          <optgroup label="🪙 العملات الرقمية الأكثر نشاطاً (Cryptos)">
+            <option value="btc" selected>🪙 البيتكوين (BTC/USDT) - الأصل القيادي</option>
+            <option value="eth">💎 الإيثيريوم (ETH/USDT) - العقود الذكية</option>
+            <option value="xrp">⚡ الريبل (XRP/USDT) - تماسك ومقاومة التذبذب</option>
+            <option value="trx">🔴 ترون (TRX/USDT) - ثبات استثنائي وتدفق شبكي</option>
+            <option value="zec">🛡️ زيد كاش (ZEC/USDT) - خصوصية وانفجار كسرى مرتقب</option>
+            <option value="ltc">🥈 لايت كوين (LTC/USDT) - شحن زخم تراكمي</option>
+            <option value="dash">💨 داش (DASH/USDT) - حركات تجميع مؤسسية</option>
+            <option value="ton">💎 تون كوين (TON/USDT) - زخم منظومة التليجرام</option>
+            <option value="sol">☀️ سولانا (SOL/USDT) - سرعة وسيولة عالية</option>
+          </optgroup>
+          <optgroup label="🟡 المعادن النفيسة والسلع (Precious Metals & Energy)">
+            <option value="gold">🟡 الذهب (Gold - XAU/USD) - الملاذ الآمن</option>
+            <option value="silver">⚪ الفضة (Silver - XAG/USD) - الذهب الأبيض والطلب الصناعي</option>
+            <option value="oil">🛢️ نفط برنت (Brent Crude Oil) - شريان الطاقة</option>
+          </optgroup>
+          <optgroup label="🇪🇬 البورصة المصرية (EGX Egyptian Market)">
+            <option value="tmgh">🏢 مجموعة طلعت مصطفى (TMGH.CA) - التطوير العقاري</option>
+            <option value="cib">🏦 البنك التجاري الدولي (COMI.CA) - القطاع المصرفي</option>
+          </optgroup>
+          <optgroup id="customAssetsOptgroup" label="✨ أزواج مضافة مخصصة (Custom Added Pairs)">
+            <!-- Dynamic options will appear here -->
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="asset-actions-group">
+        <button id="openAddAssetBtn" class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;">
+          <span>➕ إضافة عملة أو زوج جديد</span>
+        </button>
+        <button id="refreshDataBtn" class="btn btn-secondary" title="تحديث فوري للأسعار">
+          <span>🔄 تحديث</span>
+        </button>
       </div>
     </nav>
 
@@ -173,19 +204,58 @@
 
       <!-- Right Column: Interactive Chart, Multi-Horizon Matrix, and Confluence -->
       <section style="display: flex; flex-direction: column; gap: 16px;">
-        <!-- Pure Canvas Chart with Toggle Toolbar -->
+        <!-- Pure Canvas Chart Suite with High-DPI, Glow, and Prediction Fan -->
         <div class="card">
-          <div class="card-title">
-            <span>المنحنى البياني والتوافق الكسري (Canvas 2D Dual-Axis)</span>
-            <div class="chart-tool-group">
+          <div class="card-title" style="flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span>المنحنى البياني والتوافق الكسري (Canvas 2D Interactive Suite)</span>
+              <span id="chartAssetBadge" class="fibo-badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-color: #0284c7;">BTC/USDT</span>
+            </div>
+            <div class="chart-tool-group" style="display: flex; gap: 6px; flex-wrap: wrap;">
+              <button id="toggleFanBtn" class="btn btn-secondary" style="padding: 4px 8px; font-size: 10px;">
+                ✨ قمع التنبؤ الكسري
+              </button>
               <button id="toggleFiboChartBtn" class="btn btn-primary" style="padding: 4px 8px; font-size: 10px;">
-                مستويات فيبوناتشي
+                📐 مستويات فيبوناتشي
+              </button>
+              <button id="toggleTargetsBtn" class="btn btn-secondary" style="padding: 4px 8px; font-size: 10px;">
+                🎯 أهداف R1/R2/S1/S2
               </button>
             </div>
           </div>
 
-          <div class="chart-container">
+          <!-- Main Interactive Chart with Dynamic Floating Tooltip -->
+          <div class="chart-container-large" id="mainChartWrapper">
             <canvas id="marketCanvas"></canvas>
+            <div id="chartTooltip" class="chart-tooltip"></div>
+          </div>
+
+          <!-- Synchronized Fractional Derivative Oscillator ($D^d X_t$) -->
+          <div style="margin-top: 12px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+              <span style="font-size: 11px; font-weight: 700; color: var(--accent-cyan);">
+                مؤشر تسارع الذاكرة والتفاضل الكسري (Fractional Momentum Histogram $D^d X_t$):
+              </span>
+              <span id="oscillatorBiasBadge" class="pattern-badge bullish" style="font-size: 10px;">تسارع ذاكرة إيجابي</span>
+            </div>
+            <div class="oscillator-container">
+              <canvas id="oscillatorCanvas"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Algorithmic Technical & Memory Pattern Detector (AI & Quant Pattern Scanner) -->
+        <div class="pattern-scanner-card">
+          <div class="pattern-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 13px; font-weight: 800; color: #fff;">⚡ كاشف النماذج الفنية والتوافق الكسري (Algorithmic Pattern Scanner)</span>
+              <span class="live-indicator" style="font-size: 10px;">فحص حي ومستمر</span>
+            </div>
+            <span id="patternsDetectedCount" style="font-size: 11px; font-family: var(--font-mono); color: var(--accent-cyan);">3 نماذج نشطة</span>
+          </div>
+
+          <div id="patternListContainer" class="pattern-list">
+            <!-- Dynamic pattern items injected via script.js -->
           </div>
         </div>
 
@@ -234,11 +304,11 @@
           </div>
         </div>
 
-        <!-- Multi-Horizon Quantitative Forecast Matrix (6 Levels: Intraday to Macro) -->
+        <!-- Multi-Horizon Quantitative Forecast Matrix (10 Comprehensive Horizons: Scalp to Macro) -->
         <div class="card">
           <div class="card-title">
-            <span>مصفوفة التوقعات الكمية متعددة الآفاق الزمنية (Multi-Horizon Projections)</span>
-            <span style="font-size: 10px; color: var(--text-muted); font-family: var(--font-mono);">σ × √t Scaling</span>
+            <span>مصفوفة التوقعات الكمية متعددة الآفاق الزمنية (10 Horizons: Scalp to Super-Cycle)</span>
+            <span style="font-size: 10px; color: var(--text-muted); font-family: var(--font-mono);">σ × √t Square-Root-of-Time Model</span>
           </div>
 
           <div class="horizon-table-wrap">
@@ -309,6 +379,47 @@
     <footer class="footer">
       منظومة FiboSign للديناميكا الكسرية والتوافق الكمي متعدد الآفاق • م. سامح ياسين • 2026
     </footer>
+  </div>
+
+  <!-- Add Custom Asset / Crypto Modal -->
+  <div id="addAssetModal" class="modal-backdrop">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 style="font-size: 15px; font-weight: 700; color: #fff;">➕ إضافة أصل مالي أو زوج تداول جديد</h3>
+        <button id="closeAddAssetBtn" class="modal-close">&times;</button>
+      </div>
+
+      <p style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">
+        يمكنك إدخال أي زوج تداول من منصة Binance (مثل: <code style="color: var(--accent-cyan);">DOGEUSDT</code>, <code style="color: var(--accent-cyan);">ADAUSDT</code>, <code style="color: var(--accent-cyan);">AVAXUSDT</code>, <code style="color: var(--accent-cyan)=">BNBUSDT</code>) أو أي أصل مالي مع تحديد سعره الحالي. سيتم جلبه تلقائياً وتحليله بالكامل وفق معادلات الذاكرة الكسرية وهيرست!
+      </p>
+
+      <div class="form-group">
+        <label class="form-label">رمز زوج التداول على Binance (مثال: DOGEUSDT أو SOLUSDT):</label>
+        <input type="text" id="newAssetSymbol" class="form-input mono" placeholder="مثال: DOGEUSDT" style="text-transform: uppercase;" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">اسم الأصل بالعربية (للعرض في القائمة):</label>
+        <input type="text" id="newAssetName" class="form-input" placeholder="مثال: دوج كوين (Dogecoin)" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">العملة الأساسية (Currency):</label>
+        <select id="newAssetCurrency" class="form-input">
+          <option value="USD">USD (USDT / الدولار)</option>
+          <option value="EGP">EGP (الجنيه المصري)</option>
+          <option value="EUR">EUR (اليورو)</option>
+        </select>
+      </div>
+
+      <div id="addAssetStatus" style="font-size: 11px; display: none; padding: 8px; border-radius: 6px;"></div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
+        <button id="submitAddAssetBtn" class="btn btn-primary" style="padding: 10px 20px;">
+          إضافة وتحليل فوري 🚀
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Settings & API Modal -->

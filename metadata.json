@@ -1,6 +1,6 @@
 {
   "name": "Fractional Dynamics & Market Memory Engine",
-  "description": "A quantitative mathematical engine computing fractional-order derivatives, rolling Hurst exponents, and long-memory phase transitions for financial markets including Silver, Gold, and the Egyptian Exchange (EGX).",
+  "description": "Institutional quantitative mathematical engine computing fractional-order derivatives, rolling Hurst exponents, and multi-horizon market memory projections for Cryptocurrencies (BTC, ETH, XRP, TRX, ZEC, LTC, DASH, TON), Precious Metals (Gold, Silver), and Egyptian Stocks (EGX).",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
