@@ -944,6 +944,128 @@ body {
   gap: 16px;
 }
 
+.modal-box.modal-large {
+  max-width: 1150px;
+  padding: 20px;
+}
+
+.modal-box.modal-wide {
+  max-width: 1050px;
+  padding: 20px;
+}
+
+/* Focused Quant Calculator Layout */
+.grid-calculator {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .grid-calculator {
+    grid-template-columns: 1.15fr 0.85fr;
+  }
+}
+
+.calc-screen-card {
+  background: radial-gradient(circle at top left, #0d172e 0%, #060b17 100%);
+  border: 1px solid #1e293b;
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.calc-controls-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.calculator-display-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 6px 0;
+}
+
+@media (min-width: 640px) {
+  .calculator-display-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.calc-tile {
+  background: #030712;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.calc-tile:hover {
+  border-color: #334155;
+  background: #04091a;
+}
+
+.calc-tile .calc-tile-label {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.calc-tile .calc-tile-val {
+  font-family: var(--font-mono);
+  font-size: 17px;
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: -0.3px;
+  word-break: break-all;
+}
+
+.calc-tile .calc-tile-val.entry {
+  color: #38bdf8;
+}
+
+.calc-tile .calc-tile-val.tp {
+  color: #34d399;
+}
+
+.calc-tile .calc-tile-val.sl {
+  color: #fb7185;
+}
+
+.calc-tile .calc-tile-val.gold {
+  color: #fbbf24;
+}
+
+.calc-meta-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
 .modal-header {
   display: flex;
   align-items: center;

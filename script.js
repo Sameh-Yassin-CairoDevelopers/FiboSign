@@ -842,10 +842,14 @@ async function selectAsset(key) {
     dropdown.value = key;
   }
 
-  // Update Badge on Chart Card
+  // Update Badge on Chart Card and Modal
   const chartBadge = document.getElementById('chartAssetBadge');
   if (chartBadge) {
     chartBadge.innerText = (asset.symbol || key).toUpperCase();
+  }
+  const chartModalBadge = document.getElementById('chartModalAssetBadge');
+  if (chartModalBadge) {
+    chartModalBadge.innerText = (asset.symbol || key).toUpperCase();
   }
 
   showToast(State.lang === 'ar' ? `جاري تحديث بيانات ${asset.nameAr}...` : `Updating ${asset.nameEn}...`);
@@ -2357,6 +2361,54 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('fibosign_api_keys', JSON.stringify(State.apiKeys));
       settingsModal.classList.remove('open');
       showToast(State.lang === 'ar' ? 'تم حفظ مفاتيح الـ API بنجاح!' : 'API Keys saved successfully!');
+    });
+  }
+
+  // 13B. Chart Suite Pop-up Modal (الرسم البياني)
+  const chartModal = document.getElementById('chartModal');
+  const openChartModalBtn = document.getElementById('openChartModalBtn');
+  const closeChartModalBtn = document.getElementById('closeChartModalBtn');
+
+  if (openChartModalBtn && chartModal) {
+    openChartModalBtn.addEventListener('click', () => {
+      chartModal.classList.add('open');
+      // Redraw chart and oscillator once modal is displayed
+      setTimeout(() => {
+        const activeRes = State.multiHorizonResults.find(h => h.id === State.activeHorizonId) || State.multiHorizonResults[0];
+        renderChart(State.prices, State.fractionalSeries, State.liveQuote, activeRes);
+        renderOscillatorChart(State.fractionalSeries);
+      }, 50);
+    });
+  }
+
+  if (closeChartModalBtn && chartModal) {
+    closeChartModalBtn.addEventListener('click', () => chartModal.classList.remove('open'));
+  }
+
+  if (chartModal) {
+    chartModal.addEventListener('click', (e) => {
+      if (e.target === chartModal) chartModal.classList.remove('open');
+    });
+  }
+
+  // 13C. Patterns & Confluence Pop-up Modal (كاشف النماذج والتوافق)
+  const patternsModal = document.getElementById('patternsModal');
+  const openPatternsModalBtn = document.getElementById('openPatternsModalBtn');
+  const closePatternsModalBtn = document.getElementById('closePatternsModalBtn');
+
+  if (openPatternsModalBtn && patternsModal) {
+    openPatternsModalBtn.addEventListener('click', () => {
+      patternsModal.classList.add('open');
+    });
+  }
+
+  if (closePatternsModalBtn && patternsModal) {
+    closePatternsModalBtn.addEventListener('click', () => patternsModal.classList.remove('open'));
+  }
+
+  if (patternsModal) {
+    patternsModal.addEventListener('click', (e) => {
+      if (e.target === patternsModal) patternsModal.classList.remove('open');
     });
   }
 
