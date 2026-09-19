@@ -213,10 +213,13 @@
               <span id="chartAssetBadge" class="fibo-badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-color: #0284c7;">BTC/USDT</span>
             </div>
             <div class="chart-tool-group" style="display: flex; gap: 6px; flex-wrap: wrap;">
+              <button id="toggleSixRaysBtn" class="btn btn-primary" style="padding: 4px 8px; font-size: 10px;">
+                🌈 حزمة الأشعة الستة والمخاريط (3 Targets & 3 Supports)
+              </button>
               <button id="toggleFanBtn" class="btn btn-secondary" style="padding: 4px 8px; font-size: 10px;">
                 ✨ قمع التنبؤ الكسري
               </button>
-              <button id="toggleFiboChartBtn" class="btn btn-primary" style="padding: 4px 8px; font-size: 10px;">
+              <button id="toggleFiboChartBtn" class="btn btn-secondary" style="padding: 4px 8px; font-size: 10px;">
                 📐 مستويات فيبوناتشي
               </button>
               <button id="toggleTargetsBtn" class="btn btn-secondary" style="padding: 4px 8px; font-size: 10px;">
@@ -231,11 +234,11 @@
             <div id="chartTooltip" class="chart-tooltip"></div>
           </div>
 
-          <!-- Synchronized Fractional Derivative Oscillator ($D^d X_t$) -->
+          <!-- Synchronized Fractional Derivative Oscillator -->
           <div style="margin-top: 12px;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
               <span style="font-size: 11px; font-weight: 700; color: var(--accent-cyan);">
-                مؤشر تسارع الذاكرة والتفاضل الكسري (Fractional Momentum Histogram $D^d X_t$):
+                مؤشر تسارع الذاكرة والتفاضل الكسري (Fractional Momentum Histogram D<sup>d</sup> X<sub>t</sub>):
               </span>
               <span id="oscillatorBiasBadge" class="pattern-badge bullish" style="font-size: 10px;">تسارع ذاكرة إيجابي</span>
             </div>
@@ -318,11 +321,13 @@
                 <tr>
                   <th>الأفق الزمني</th>
                   <th>الاتجاه المرجح</th>
-                  <th>التذبذب المتوقع (±%)</th>
-                  <th>الهدف 1 (R1)</th>
-                  <th>الهدف 2 (R2)</th>
-                  <th>الدعم 1 (S1)</th>
-                  <th>الدعم 2 (S2)</th>
+                  <th>التذبذب (±%)</th>
+                  <th>هدف 1 (R1)</th>
+                  <th>هدف 2 (R2)</th>
+                  <th>هدف 3 (R3)</th>
+                  <th>دعم 1 (S1)</th>
+                  <th>دعم 2 (S2)</th>
+                  <th>دعم 3 (S3)</th>
                   <th>الاحتمال</th>
                 </tr>
               </thead>
@@ -493,25 +498,25 @@
       </div>
 
       <p style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">
-        يمكنك إدخال أي زوج تداول من منصة Binance (مثل: <code style="color: var(--accent-cyan);">DOGEUSDT</code>, <code style="color: var(--accent-cyan);">ADAUSDT</code>, <code style="color: var(--accent-cyan);">AVAXUSDT</code>, <code style="color: var(--accent-cyan)=">BNBUSDT</code>) أو أي أصل مالي مع تحديد سعره الحالي. سيتم جلبه تلقائياً وتحليله بالكامل وفق معادلات الذاكرة الكسرية وهيرست!
+        يمكنك إدخال أي زوج تداول من منصة Binance (مثل: <code style="color: var(--accent-cyan);">DOGEUSDT</code>, <code style="color: var(--accent-cyan);">ADAUSDT</code>, <code style="color: var(--accent-cyan);">AVAXUSDT</code>, <code style="color: var(--accent-cyan);">BNBUSDT</code>) أو أي أصل مالي مع تحديد سعره الحالي. سيتم جلبه تلقائياً وتحليله بالكامل وفق معادلات الذاكرة الكسرية وهيرست!
       </p>
 
       <div class="form-group">
         <label class="form-label">رمز زوج التداول على Binance (مثال: DOGEUSDT أو SOLUSDT):</label>
-        <input type="text" id="newAssetSymbol" class="form-input mono" placeholder="مثال: DOGEUSDT" style="text-transform: uppercase;" />
+        <input type="text" id="customAssetSymbol" class="form-input mono" placeholder="مثال: DOGEUSDT" style="text-transform: uppercase;" />
       </div>
 
       <div class="form-group">
         <label class="form-label">اسم الأصل بالعربية (للعرض في القائمة):</label>
-        <input type="text" id="newAssetName" class="form-input" placeholder="مثال: دوج كوين (Dogecoin)" />
+        <input type="text" id="customAssetNameAr" class="form-input" placeholder="مثال: دوج كوين (Dogecoin)" />
       </div>
 
       <div class="form-group">
         <label class="form-label">العملة الأساسية (Currency):</label>
-        <select id="newAssetCurrency" class="form-input">
-          <option value="USD">USD (USDT / الدولار)</option>
-          <option value="EGP">EGP (الجنيه المصري)</option>
-          <option value="EUR">EUR (اليورو)</option>
+        <select id="customAssetType" class="form-input">
+          <option value="crypto">USD (USDT / العملات الرقمية)</option>
+          <option value="egx">EGP (الجنيه المصري / الأسهم)</option>
+          <option value="forex">EUR / Forex (العملات الأجنبية)</option>
         </select>
       </div>
 
@@ -524,6 +529,9 @@
       </div>
     </div>
   </div>
+
+  <!-- Global Toast Notification Element -->
+  <div id="fiboToast" class="fibo-toast" style="display: none;"></div>
 
   <!-- Settings & API Modal -->
   <div id="settingsModal" class="modal-backdrop">

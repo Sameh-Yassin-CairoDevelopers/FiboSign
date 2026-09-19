@@ -308,9 +308,10 @@ const State = {
   swingLow: 0,
   multiHorizonResults: [],
   isPivot: false,
-  showPredictionFan: true,
+  showSixRays: true,
+  showPredictionFan: false,
   showFiboOnChart: true,
-  showTargetsOnChart: true,
+  showTargetsOnChart: false,
   detectedPatterns: [],
   customAssets: JSON.parse(localStorage.getItem('fibosign_custom_assets') || '{}'),
   trades: JSON.parse(localStorage.getItem('fibosign_trades_v2') || '[]'),
@@ -936,24 +937,13 @@ function updateAllCalculations() {
       dir = State.hurst > 0.51 ? 'SELL' : 'BUY';
     }
 
-    // Realistic targets: R1 (TP1) & R2 (TP2), S1 (SL) & S2
-    let r1, r2, s1, s2;
-    if (dir === 'BUY') {
-      r1 = livePrice + moveDist * 1.0;
-      r2 = livePrice + moveDist * 1.618;
-      s1 = livePrice - moveDist * 0.65;
-      s2 = livePrice - moveDist * 1.2;
-    } else if (dir === 'SELL') {
-      r1 = livePrice - moveDist * 1.0;
-      r2 = livePrice - moveDist * 1.618;
-      s1 = livePrice + moveDist * 0.65;
-      s2 = livePrice + moveDist * 1.2;
-    } else {
-      r1 = livePrice + moveDist * 0.8;
-      r2 = livePrice + moveDist * 1.4;
-      s1 = livePrice - moveDist * 0.8;
-      s2 = livePrice - moveDist * 1.4;
-    }
+    // 6-Level Geometry: 3 Upward Resistances / Targets & 3 Downward Supports
+    const r1 = livePrice + moveDist * 0.618;
+    const r2 = livePrice + moveDist * 1.000;
+    const r3 = livePrice + moveDist * 1.618;
+    const s1 = livePrice - moveDist * 0.618;
+    const s2 = livePrice - moveDist * 1.000;
+    const s3 = livePrice - moveDist * 1.618;
 
     const prob = isPiv ? 52 : Math.round(Math.min(84, Math.max(68, (State.hurst > 0.52 ? 76 : 70) + (Math.abs(lastFrac) > 0.1 ? 4 : 0))));
 
@@ -965,8 +955,10 @@ function updateAllCalculations() {
       moveDist,
       r1,
       r2,
+      r3,
       s1,
       s2,
+      s3,
       probability: prob
     };
   });
@@ -1303,10 +1295,12 @@ function renderMultiHorizonTable() {
       </td>
       <td>${dirBadge}</td>
       <td style="font-family: monospace; color: var(--accent-cyan);">±${h.volPct}%</td>
-      <td style="font-family: monospace; color: #34d399;">${formatPrice(h.r1)}</td>
-      <td style="font-family: monospace; color: #10b981;">${formatPrice(h.r2)}</td>
-      <td style="font-family: monospace; color: #fb7185;">${formatPrice(h.s1)}</td>
-      <td style="font-family: monospace; color: #f43f5e;">${formatPrice(h.s2)}</td>
+      <td style="font-family: monospace; color: #34d399; font-weight: 700;">${formatPrice(h.r1)}</td>
+      <td style="font-family: monospace; color: #38bdf8; font-weight: 700;">${formatPrice(h.r2)}</td>
+      <td style="font-family: monospace; color: #f59e0b; font-weight: 700;">${formatPrice(h.r3)}</td>
+      <td style="font-family: monospace; color: #f472b6; font-weight: 700;">${formatPrice(h.s1)}</td>
+      <td style="font-family: monospace; color: #ef4444; font-weight: 700;">${formatPrice(h.s2)}</td>
+      <td style="font-family: monospace; color: #a855f7; font-weight: 700;">${formatPrice(h.s3)}</td>
       <td style="font-family: monospace; font-weight: 800; color: var(--accent-gold);">${h.probability}%</td>
     </tr>`;
   }).join('');
@@ -1488,8 +1482,10 @@ function renderChart(prices, fracSeries, livePrice, activeHorizon) {
     livePrice,
     activeHorizon.r1,
     activeHorizon.r2,
+    activeHorizon.r3,
     activeHorizon.s1,
     activeHorizon.s2,
+    activeHorizon.s3,
     State.fiboLevels.fibo618 || livePrice
   ].filter(x => !isNaN(x) && x > 0);
 
@@ -1497,9 +1493,9 @@ function renderChart(prices, fracSeries, livePrice, activeHorizon) {
   const maxP = Math.max(...allLevels) * 1.005;
   const rangeP = maxP - minP || 1;
 
-  // Leave room on right for the prediction fan into the future
-  const futureBars = 6;
-  const totalSlots = prices.length + (State.showPredictionFan ? futureBars : 0);
+  // Leave room on right for the prediction rays & fan into the future
+  const futureBars = 7;
+  const totalSlots = prices.length + ((State.showPredictionFan || State.showSixRays) ? futureBars : 0);
   const stepX = (w - padLeft - padRight) / Math.max(1, totalSlots - 1);
 
   // 1. Grid lines and price markers
@@ -1539,11 +1535,123 @@ function renderChart(prices, fracSeries, livePrice, activeHorizon) {
     }
   }
 
-  // 3. Prediction Funnel (Fan of probability expanding into the future)
-  const lastIndex = prices.length - 1;
-  const startX = padLeft + lastIndex * stepX;
-  const startY = padTop + (1 - (livePrice - minP) / rangeP) * (h - padTop - padBottom);
+  // 3. Six Rays & Shaded Zones Emanating from Moving Price Node
+  if (State.showSixRays) {
+    const endX = padLeft + (lastIndex + futureBars) * stepX;
+    const yR1 = padTop + (1 - (activeHorizon.r1 - minP) / rangeP) * (h - padTop - padBottom);
+    const yR2 = padTop + (1 - (activeHorizon.r2 - minP) / rangeP) * (h - padTop - padBottom);
+    const yR3 = padTop + (1 - (activeHorizon.r3 - minP) / rangeP) * (h - padTop - padBottom);
+    const yS1 = padTop + (1 - (activeHorizon.s1 - minP) / rangeP) * (h - padTop - padBottom);
+    const yS2 = padTop + (1 - (activeHorizon.s2 - minP) / rangeP) * (h - padTop - padBottom);
+    const yS3 = padTop + (1 - (activeHorizon.s3 - minP) / rangeP) * (h - padTop - padBottom);
 
+    // --- Shaded Inter-Ray Zones ---
+    // Zone 1: Current Price to R1 (Light Green)
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, yR1);
+    ctx.lineTo(endX, startY);
+    ctx.closePath();
+    const gZ1 = ctx.createLinearGradient(startX, startY, endX, yR1);
+    gZ1.addColorStop(0, 'rgba(52, 211, 153, 0.28)');
+    gZ1.addColorStop(1, 'rgba(52, 211, 153, 0.08)');
+    ctx.fillStyle = gZ1;
+    ctx.fill();
+
+    // Zone 2: R1 to R2 (Sky Blue)
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, yR2);
+    ctx.lineTo(endX, yR1);
+    ctx.closePath();
+    const gZ2 = ctx.createLinearGradient(startX, startY, endX, yR2);
+    gZ2.addColorStop(0, 'rgba(56, 189, 248, 0.24)');
+    gZ2.addColorStop(1, 'rgba(56, 189, 248, 0.07)');
+    ctx.fillStyle = gZ2;
+    ctx.fill();
+
+    // Zone 3: R2 to R3 (Joyful Golden / Amber)
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, yR3);
+    ctx.lineTo(endX, yR2);
+    ctx.closePath();
+    const gZ3 = ctx.createLinearGradient(startX, startY, endX, yR3);
+    gZ3.addColorStop(0, 'rgba(245, 158, 11, 0.26)');
+    gZ3.addColorStop(1, 'rgba(245, 158, 11, 0.06)');
+    ctx.fillStyle = gZ3;
+    ctx.fill();
+
+    // Zone 4: Current Price to S1 (Soft Pink)
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, startY);
+    ctx.lineTo(endX, yS1);
+    ctx.closePath();
+    const gZ4 = ctx.createLinearGradient(startX, startY, endX, yS1);
+    gZ4.addColorStop(0, 'rgba(244, 114, 182, 0.28)');
+    gZ4.addColorStop(1, 'rgba(244, 114, 182, 0.08)');
+    ctx.fillStyle = gZ4;
+    ctx.fill();
+
+    // Zone 5: S1 to S2 (Coral Red)
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, yS1);
+    ctx.lineTo(endX, yS2);
+    ctx.closePath();
+    const gZ5 = ctx.createLinearGradient(startX, startY, endX, yS2);
+    gZ5.addColorStop(0, 'rgba(239, 68, 68, 0.24)');
+    gZ5.addColorStop(1, 'rgba(239, 68, 68, 0.07)');
+    ctx.fillStyle = gZ5;
+    ctx.fill();
+
+    // Zone 6: S2 to S3 (Purple / Capitulation Floor)
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, yS2);
+    ctx.lineTo(endX, yS3);
+    ctx.closePath();
+    const gZ6 = ctx.createLinearGradient(startX, startY, endX, yS3);
+    gZ6.addColorStop(0, 'rgba(168, 85, 247, 0.28)');
+    gZ6.addColorStop(1, 'rgba(168, 85, 247, 0.08)');
+    ctx.fillStyle = gZ6;
+    ctx.fill();
+
+    // --- Draw the 6 Emitted Rays from (startX, startY) ---
+    const rays = [
+      { y: yR3, color: '#f59e0b', label: `R3: ${formatPrice(activeHorizon.r3)}` },
+      { y: yR2, color: '#38bdf8', label: `R2: ${formatPrice(activeHorizon.r2)}` },
+      { y: yR1, color: '#34d399', label: `R1: ${formatPrice(activeHorizon.r1)}` },
+      { y: yS1, color: '#f472b6', label: `S1: ${formatPrice(activeHorizon.s1)}` },
+      { y: yS2, color: '#ef4444', label: `S2: ${formatPrice(activeHorizon.s2)}` },
+      { y: yS3, color: '#a855f7', label: `S3: ${formatPrice(activeHorizon.s3)}` },
+    ];
+
+    rays.forEach((r, idx) => {
+      ctx.strokeStyle = r.color;
+      ctx.lineWidth = 1.6;
+      ctx.setLineDash(idx === 0 || idx === 5 ? [5, 4] : [3, 2]);
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(endX, r.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Endpoint node
+      ctx.beginPath();
+      ctx.fillStyle = r.color;
+      ctx.arc(endX, r.y, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Right-side text label
+      ctx.fillStyle = r.color;
+      ctx.font = 'bold 9px monospace';
+      ctx.fillText(r.label, endX + 6, r.y + 3);
+    });
+  }
+
+  // 4. Prediction Funnel (Fan of probability expanding into the future)
   if (State.showPredictionFan) {
     const endX = padLeft + (lastIndex + futureBars) * stepX;
     const targetHigh = activeHorizon.direction === 'BUY' ? activeHorizon.r2 : (activeHorizon.isPivot ? activeHorizon.r1 : livePrice + activeHorizon.moveDist * 0.5);
@@ -1712,6 +1820,7 @@ function resolveTrade(id, result) {
   localStorage.setItem('fibosign_trades_v2', JSON.stringify(State.trades));
   renderTradesTable();
 }
+window.resolveTrade = resolveTrade;
 
 function clearAllTrades() {
   if (confirm(State.lang === 'ar' ? 'هل تريد مسح جميع التجارب السابقة؟' : 'Clear all test records?')) {
@@ -1720,6 +1829,7 @@ function clearAllTrades() {
     renderTradesTable();
   }
 }
+window.clearAllTrades = clearAllTrades;
 
 function renderTradesTable() {
   const tbody = document.getElementById('tradesTbody');
@@ -2000,6 +2110,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 11. Chart Interactive Toggles
+  const toggleSixRaysBtn = document.getElementById('toggleSixRaysBtn');
+  if (toggleSixRaysBtn) {
+    toggleSixRaysBtn.addEventListener('click', () => {
+      State.showSixRays = !State.showSixRays;
+      toggleSixRaysBtn.classList.toggle('btn-primary', State.showSixRays);
+      toggleSixRaysBtn.classList.toggle('btn-secondary', !State.showSixRays);
+      const activeRes = State.multiHorizonResults.find(h => h.id === State.activeHorizonId) || State.multiHorizonResults[0];
+      renderChart(State.prices, State.fractionalSeries, State.liveQuote, activeRes);
+    });
+  }
+
   const toggleFanBtn = document.getElementById('toggleFanBtn');
   if (toggleFanBtn) {
     toggleFanBtn.addEventListener('click', () => {
