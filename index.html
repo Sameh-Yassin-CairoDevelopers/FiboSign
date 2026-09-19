@@ -204,7 +204,7 @@
       </section>
 
       <!-- Right Column: Interactive Chart, Multi-Horizon Matrix, and Confluence -->
-      <section style="display: flex; flex-direction: column; gap: 16px;">
+      <section class="right-col" style="display: flex; flex-direction: column; gap: 16px; min-width: 0; max-width: 100%;">
         <!-- Pure Canvas Chart Suite with High-DPI, Glow, and Prediction Fan -->
         <div class="card">
           <div class="card-title" style="flex-wrap: wrap; gap: 8px;">
@@ -212,18 +212,18 @@
               <span>المنحنى البياني والتوافق الكسري (Canvas 2D Interactive Suite)</span>
               <span id="chartAssetBadge" class="fibo-badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-color: #0284c7;">BTC/USDT</span>
             </div>
-            <div class="chart-tool-group" style="display: flex; gap: 6px; flex-wrap: wrap;">
-              <button id="toggleSixRaysBtn" class="btn btn-primary" style="padding: 4px 8px; font-size: 10px;">
-                🌈 حزمة الأشعة الستة والمخاريط (3 Targets & 3 Supports)
+            <div class="chart-tool-group">
+              <button id="toggleSixRaysBtn" class="btn btn-primary chart-control-btn">
+                🌈 <span class="desktop-text">حزمة الأشعة الستة والمخاريط (3 Targets & 3 Supports)</span><span class="mobile-text">الأشعة الستة</span>
               </button>
-              <button id="toggleFanBtn" class="btn btn-secondary" style="padding: 4px 8px; font-size: 10px;">
-                ✨ قمع التنبؤ الكسري
+              <button id="toggleFanBtn" class="btn btn-secondary chart-control-btn">
+                ✨ <span class="desktop-text">قمع التنبؤ الكسري</span><span class="mobile-text">قمع التنبؤ</span>
               </button>
-              <button id="toggleFiboChartBtn" class="btn btn-secondary" style="padding: 4px 8px; font-size: 10px;">
-                📐 مستويات فيبوناتشي
+              <button id="toggleFiboChartBtn" class="btn btn-secondary chart-control-btn">
+                📐 <span class="desktop-text">مستويات فيبوناتشي</span><span class="mobile-text">فيبوناتشي</span>
               </button>
-              <button id="toggleTargetsBtn" class="btn btn-secondary" style="padding: 4px 8px; font-size: 10px;">
-                🎯 أهداف R1/R2/S1/S2
+              <button id="toggleTargetsBtn" class="btn btn-secondary chart-control-btn">
+                🎯 <span class="desktop-text">أهداف R1/R2/S1/S2</span><span class="mobile-text">الأهداف</span>
               </button>
             </div>
           </div>
@@ -361,7 +361,7 @@
           </p>
 
           <!-- Perspective Tabs -->
-          <div class="horizon-selector" style="margin-bottom: 14px; grid-template-columns: repeat(4, 1fr);">
+          <div class="horizon-selector investor-tabs-grid" style="margin-bottom: 14px;">
             <button class="horizon-btn investor-tab active" data-persona="scalper">⚡ مضارب سريع (Tick-by-Tick)</button>
             <button class="horizon-btn investor-tab" data-persona="retail">🎯 متداول يومي (Day Trader)</button>
             <button class="horizon-btn investor-tab" data-persona="whale">🐋 محفظة كبرى (Institutional)</button>
@@ -378,7 +378,7 @@
             <h4 style="font-size: 13px; font-weight: 700; color: var(--accent-amber); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
               <span>🧭 أسئلة وإجابات الوسيط والسمسار قبل فتح الصفقة (Broker Pre-Trade Checklist):</span>
             </h4>
-            <div id="brokerQuestionsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px;">
+            <div id="brokerQuestionsContainer" class="broker-q-grid">
               <!-- Dynamically populated via script.js -->
             </div>
           </div>
@@ -395,7 +395,7 @@
             للوصول إلى نسب نجاح تتجاوز 90%، يدمج النظام 5 معادلات كمية متراكبة لا تعتمد على المؤشرات الفنية المتأخرة، بل على الذاكرة الكسرية وتفاضل السلسلة الزمنية وهندسة الفراكتال:
           </p>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px;">
+          <div class="equations-grid">
             <!-- Eq 1: Fractional Differentiation -->
             <div style="background: #060b17; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
               <div style="font-size: 12px; font-weight: 700; color: var(--accent-cyan); margin-bottom: 6px;">

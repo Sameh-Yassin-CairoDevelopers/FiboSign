@@ -1497,6 +1497,9 @@ function renderChart(prices, fracSeries, livePrice, activeHorizon) {
   const futureBars = 7;
   const totalSlots = prices.length + ((State.showPredictionFan || State.showSixRays) ? futureBars : 0);
   const stepX = (w - padLeft - padRight) / Math.max(1, totalSlots - 1);
+  const lastIndex = prices.length - 1;
+  const startX = padLeft + lastIndex * stepX;
+  const startY = padTop + (1 - (livePrice - minP) / rangeP) * (h - padTop - padBottom);
 
   // 1. Grid lines and price markers
   ctx.strokeStyle = '#15213b';

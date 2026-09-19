@@ -7,6 +7,10 @@ const PORT = 3000;
 
 app.use(express.json());
 
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', time: new Date().toISOString() });
+});
+
 // Multi-provider quote fetcher cache
 const quoteCache: Record<string, { data: any; time: number }> = {};
 const klinesCache: Record<string, { data: number[]; time: number }> = {};
