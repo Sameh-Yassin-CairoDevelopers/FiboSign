@@ -140,13 +140,39 @@
         <!-- Real-Time Prediction Box (Hero Decision) -->
         <div id="predictionBox" class="prediction-box bullish">
           <div class="prediction-header">
-            <span id="signalBadge" class="signal-badge buy">شراء قوي (BUY)</span>
+            <span id="signalBadge" class="signal-badge strong-buy">شراء قوي (STRONG BUY)</span>
             <span id="confidenceValue" style="font-family: var(--font-mono); font-weight: 800; font-size: 14px; color: var(--accent-cyan);">78%</span>
           </div>
 
-          <p id="biasDescription" style="font-size: 12px; line-height: 1.6; color: var(--text-main);">
-            عزم شرائي قوي ذو ذاكرة حركية ممتدة.
-          </p>
+          <!-- Concise Execution Terms & Real Values Strip -->
+          <div class="quant-action-strip">
+            <div class="quant-pill">
+              <span class="q-label">🎯 الدخول:</span>
+              <span id="entryPriceVal" class="q-val mono cyan">---</span>
+            </div>
+            <div class="quant-pill">
+              <span class="q-label">🟢 الهدف 1 (TP1):</span>
+              <span id="tp1Val" class="q-val mono tp">---</span>
+            </div>
+            <div class="quant-pill">
+              <span class="q-label">🚀 الهدف 2 (TP2):</span>
+              <span id="tp2Val" class="q-val mono tp">---</span>
+            </div>
+            <div class="quant-pill">
+              <span class="q-label">🛑 الوقف (SL):</span>
+              <span id="slVal" class="q-val mono sl">---</span>
+            </div>
+            <div class="quant-pill">
+              <span class="q-label">⚖️ R:R:</span>
+              <span id="rrVal" class="q-val mono gold">---</span>
+            </div>
+            <div class="quant-pill">
+              <span class="q-label">📦 الحجم:</span>
+              <span id="sizeVal" class="q-val mono cyan">---</span>
+            </div>
+          </div>
+
+          <p id="biasDescription" style="display: none;"></p>
 
           <!-- 4 Precise Support & Resistance Levels -->
           <div class="levels-grid">
@@ -182,7 +208,7 @@
 
           <div style="display: flex; justify-content: space-between; font-size: 11px; padding-top: 6px; border-top: 1px solid #1a253c;">
             <span id="hurstValue" style="color: var(--accent-amber); font-family: var(--font-mono); font-weight: 700;">H = 0.65</span>
-            <span style="color: var(--text-dim);">هدف النموذج: 75% - 80% دقة</span>
+            <span id="quantStatusSummary" style="color: var(--text-muted); font-family: var(--font-mono);">زخم كسري: ---</span>
           </div>
         </div>
 
@@ -353,12 +379,8 @@
         <div class="card" id="investorMatrixCard">
           <div class="card-title">
             <span>مصفوفة قرارات المستثمر والوسيط الذكي (Investor & Broker Decision Matrix)</span>
-            <span style="font-size: 11px; color: var(--accent-cyan);">فكر كأنك مستثمر</span>
+            <span style="font-size: 11px; color: var(--accent-cyan);">أوامر وقيم تنفيذية</span>
           </div>
-
-          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.6;">
-            تضع المنصة استراتيجية مخصصة لكل ملف استثماري؛ اختر نمط تداولك للحصول على إجابات رقمية دقيقة تحدد نقطة الدخول، جني الأرباح، والوقف الصارم:
-          </p>
 
           <!-- Perspective Tabs -->
           <div class="horizon-selector investor-tabs-grid" style="margin-bottom: 14px;">
@@ -384,16 +406,12 @@
           </div>
         </div>
 
-        <!-- 6. Advanced Mathematical Foundations (90% - 95% Confluence Equations) -->
+        <!-- 6. Advanced Mathematical Foundations -->
         <div class="card" id="mathEquationsCard">
           <div class="card-title">
-            <span>المصفوفة الرياضية ومعادلات رفع دقة التوقع إلى 90% - 95% (Quantitative Foundations)</span>
-            <span style="font-size: 11px; color: var(--accent-emerald);">معادلات حتمية وإحصائية</span>
+            <span>المصفوفة الرياضية ومعادلات رفع دقة التوقع (Quantitative Foundations)</span>
+            <span style="font-size: 11px; color: var(--accent-emerald);">قيم حية لحظية مطبقة</span>
           </div>
-
-          <p style="font-size: 12px; color: var(--text-muted); line-height: 1.6; margin-bottom: 14px;">
-            للوصول إلى نسب نجاح تتجاوز 90%، يدمج النظام 5 معادلات كمية متراكبة لا تعتمد على المؤشرات الفنية المتأخرة، بل على الذاكرة الكسرية وتفاضل السلسلة الزمنية وهندسة الفراكتال:
-          </p>
 
           <div class="equations-grid">
             <!-- Eq 1: Fractional Differentiation -->
@@ -404,9 +422,7 @@
               <div style="font-family: var(--font-mono); font-size: 12px; color: #38bdf8; background: #030712; padding: 8px; border-radius: 6px; direction: ltr; text-align: center;">
                 D^d X_t = Σ_{k=0}^∞ (-1)^k C(d, k) X_{t-k}
               </div>
-              <p style="font-size: 11px; color: #94a3b8; margin-top: 6px; line-height: 1.5;">
-                تزيل عدم الاستقرار الإحصائي مع الحفاظ على 80% من ذاكرة الأسعار التاريخية، كاشفة التدفق الذكي قبل انعكاس السعر الفعلي.
-              </p>
+              <div id="eq1LiveVal" class="eq-live-pill">D^d: --- | d* = --- | حفظ الذاكرة: ---%</div>
             </div>
 
             <!-- Eq 2: Hurst Exponent -->
@@ -417,9 +433,7 @@
               <div style="font-family: var(--font-mono); font-size: 12px; color: #34d399; background: #030712; padding: 8px; border-radius: 6px; direction: ltr; text-align: center;">
                 E[(R/S)_τ] ~ C · τ^H &nbsp;|&nbsp; D_F = 2 - H
               </div>
-              <p style="font-size: 11px; color: #94a3b8; margin-top: 6px; line-height: 1.5;">
-                يقيس ديمومة المسار؛ عندما يكون H > 0.50 تثبت الرياضيات أن حركة الأصل ليست عشوائية، وتكشف مرحلة استمرار الزخم المؤسسي.
-              </p>
+              <div id="eq2LiveVal" class="eq-live-pill">H: --- | النمط: --- | البعد D_F: ---</div>
             </div>
 
             <!-- Eq 3: Volatility Horizon Scaling -->
@@ -430,22 +444,29 @@
               <div style="font-family: var(--font-mono); font-size: 12px; color: #fbbf24; background: #030712; padding: 8px; border-radius: 6px; direction: ltr; text-align: center;">
                 σ(τ) = σ_daily · τ^H &nbsp;⇒&nbsp; R_k = P_0 · exp(+κ_k · σ(τ))
               </div>
-              <p style="font-size: 11px; color: #94a3b8; margin-top: 6px; line-height: 1.5;">
-                يحسب بدقة متناهية أفق التذبذب المستقبلي لكل إطار زمني لمنع ضرب الستوب لوس بالضوضاء العشوائية.
-              </p>
+              <div id="eq3LiveVal" class="eq-live-pill">σ = ---% | نطاق R1: --- | نطاق S1: ---</div>
             </div>
 
             <!-- Eq 4: Confluence Probability Model -->
             <div style="background: #060b17; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
               <div style="font-size: 12px; font-weight: 700; color: #a78bfa; margin-bottom: 6px;">
-                4. محرك التطابق الاحتمالي لنسبة 90% - 95%:
+                4. محرك التطابق الاحتمالي (Confluence Engine):
               </div>
               <div style="font-family: var(--font-mono); font-size: 12px; color: #c084fc; background: #030712; padding: 8px; border-radius: 6px; direction: ltr; text-align: center;">
-                Φ = 0.35·H + 0.30·Sign(D^d) + 0.20·Fibo_61.8 + 0.15·RSI_m
+                Φ = 0.35·H + 0.30·Sign(ΔD^d) + 0.20·Fibo + 0.15·RSI
               </div>
-              <p style="font-size: 11px; color: #94a3b8; margin-top: 6px; line-height: 1.5;">
-                عند توافق الإشارات الأربع معاً، يتجاوز معدل النجاح الإحصائي الموثق 92.4% مع انعدام الانزلاق السعري الزائف.
-              </p>
+              <div id="eq4LiveVal" class="eq-live-pill">التوافق Φ: ---% | الإشارة: ---</div>
+            </div>
+
+            <!-- Eq 5: Live Execution Decision -->
+            <div style="background: #060b17; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px;">
+              <div style="font-size: 12px; font-weight: 700; color: #34d399; margin-bottom: 6px;">
+                5. القرار الكمي المباشر (Quant Order Execution):
+              </div>
+              <div style="font-family: var(--font-mono); font-size: 12px; color: #34d399; background: #030712; padding: 8px; border-radius: 6px; direction: ltr; text-align: center;">
+                Order = Trigger(Φ, D^d, R1, S1, RR)
+              </div>
+              <div id="eq5LiveVal" class="eq-live-pill">القرار: --- | الدخول: --- | R:R = ---</div>
             </div>
           </div>
         </div>

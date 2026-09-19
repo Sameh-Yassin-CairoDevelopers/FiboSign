@@ -333,19 +333,23 @@ function computeWeights(d, length = 25) {
 }
 
 /**
- * Computes fractional derivative series preserving long memory
+ * Computes fractional derivative series preserving long memory (Normalized Scale-Invariant)
  */
 function fractionalDifferentiation(series, d) {
+  if (!series || series.length === 0) return [];
+  // Scale-invariant fractional differentiation using percentage deviations from baseline
+  const p0 = series[0] || 1;
+  const normSeries = series.map(p => Math.log(Math.max(1e-7, p) / p0) * 100);
   const weights = computeWeights(d, Math.min(22, series.length));
   const out = [];
   for (let i = 0; i < series.length; i++) {
     let sum = 0;
     for (let k = 0; k < weights.length; k++) {
       if (i - k >= 0) {
-        sum += weights[k] * series[i - k];
+        sum += weights[k] * normSeries[i - k];
       }
     }
-    out.push(sum);
+    out.push(parseFloat(sum.toFixed(3)));
   }
   return out;
 }
@@ -378,13 +382,19 @@ function calculateOptimalD(series) {
 }
 
 /**
- * Rolling Hurst Exponent using Rescaled Range (R/S) Analysis
+ * Rolling Hurst Exponent using Rescaled Range (R/S) Analysis on Returns
  */
 function computeHurstExponent(series) {
   if (!series || series.length < 8) return 0.55;
-  const n = series.length;
-  const mean = series.reduce((a, b) => a + b, 0) / n;
-  const dev = series.map(x => x - mean);
+  const returns = [];
+  for (let i = 1; i < series.length; i++) {
+    const prev = series[i - 1] || 1;
+    returns.push((series[i] - prev) / prev);
+  }
+  const n = returns.length;
+  if (n < 4) return 0.52;
+  const mean = returns.reduce((a, b) => a + b, 0) / n;
+  const dev = returns.map(x => x - mean);
   
   let cum = 0;
   let maxCum = -Infinity;
@@ -399,10 +409,10 @@ function computeHurstExponent(series) {
   const variance = dev.reduce((acc, v) => acc + v * v, 0) / n;
   const std = Math.sqrt(variance);
   
-  if (std === 0 || range === 0) return 0.50;
+  if (std === 0 || range === 0) return 0.52;
   const rs = range / std;
   const hurst = Math.log(rs) / Math.log(n * 0.5);
-  return Math.min(0.88, Math.max(0.32, hurst));
+  return parseFloat(Math.min(0.85, Math.max(0.35, hurst)).toFixed(2));
 }
 
 /**
@@ -891,6 +901,142 @@ async function selectAsset(key) {
 }
 
 /**
+ * Unified Quantitative Decision Engine
+ * Translates math into 5 explicit actionable signals:
+ * STRONG_BUY | PARTIAL_BUY | PARTIAL_EXIT | STRONG_SELL | HOLD
+ */
+function computeQuantDecision(prices, livePrice, fracSeries, hurst, rsi, fiboLevels, horizonRes) {
+  const n = prices.length;
+  const lastFrac = fracSeries[fracSeries.length - 1] || 0;
+  const prevFrac = fracSeries[fracSeries.length - 2] || 0;
+  const fracSlope = lastFrac - prevFrac;
+  
+  const recent3 = (livePrice - prices[Math.max(0, n - 4)]) / (prices[Math.max(0, n - 4)] || 1) * 100;
+  const recent8 = (livePrice - prices[Math.max(0, n - 9)]) / (prices[Math.max(0, n - 9)] || 1) * 100;
+  
+  const moveDist = horizonRes ? horizonRes.moveDist : (livePrice * 0.02);
+  const golden618 = fiboLevels.fibo618 || livePrice;
+  const goldenDistPct = Math.abs(livePrice - golden618) / livePrice * 100;
+
+  let action = 'HOLD';
+  let actionLabelAr = 'انتظار (HOLD)';
+  let actionLabelEn = 'HOLD / WAIT';
+  let badgeClass = 'hold';
+  let entry = livePrice;
+  let tp1 = livePrice + moveDist * 0.618;
+  let tp2 = livePrice + moveDist * 1.000;
+  let sl = livePrice - moveDist * 0.618;
+  let sizeVal = '0% (مراقبة)';
+  let ruleSummary = 'السعر في منطقة توازن حيادية؛ يفضل الانتظار حتى ظهور كسر صريح.';
+  let confluenceScore = 72;
+
+  // 1. Partial Exit (خروج جزئي):
+  if (rsi >= 68 || (livePrice >= (fiboLevels.fibo786 || Infinity) && fracSlope < 0) || (recent3 > 2.8 && fracSlope < 0)) {
+    action = 'PARTIAL_EXIT';
+    actionLabelAr = 'خروج جزئي (PARTIAL EXIT)';
+    actionLabelEn = 'PARTIAL EXIT';
+    badgeClass = 'partial-exit';
+    entry = livePrice;
+    tp1 = livePrice + moveDist * 0.382;
+    tp2 = livePrice + moveDist * 0.618;
+    sl = livePrice - moveDist * 0.382;
+    sizeVal = 'جني أرباح 50%';
+    ruleSummary = 'تشبع شرائي أو اقتراب من القمم؛ جني 50% من الأرباح وتأمين الوقف.';
+    confluenceScore = Math.round(86 + Math.min(8, (rsi - 68) * 0.8));
+  }
+  // 2. Strong Sell (بيع قوي):
+  else if ((fracSlope < -0.05 && hurst > 0.51 && recent3 < -0.3) || (rsi < 42 && fracSlope < 0 && recent8 < -1.0)) {
+    action = 'STRONG_SELL';
+    actionLabelAr = 'بيع قوي (STRONG SELL)';
+    actionLabelEn = 'STRONG SELL';
+    badgeClass = 'strong-sell';
+    entry = livePrice;
+    tp1 = livePrice - moveDist * 0.618;
+    tp2 = livePrice - moveDist * 1.000;
+    sl = livePrice + moveDist * 0.618;
+    sizeVal = 'تسييل 100% أو بيع';
+    ruleSummary = 'كسر دعوم الذاكرة واستمرار الزخم البيعي المؤسسي نحو الأهداف السفلية.';
+    confluenceScore = Math.round(85 + (hurst > 0.55 ? 6 : 2));
+  }
+  // 3. Strong Buy (شراء قوي):
+  else if ((fracSlope > 0.04 && hurst > 0.52 && rsi < 66 && recent3 >= -0.3) || (rsi <= 38 && hurst < 0.50 && goldenDistPct < 1.5)) {
+    action = 'STRONG_BUY';
+    actionLabelAr = 'شراء قوي (STRONG BUY)';
+    actionLabelEn = 'STRONG BUY';
+    badgeClass = 'strong-buy';
+    entry = livePrice;
+    tp1 = livePrice + moveDist * 0.618;
+    tp2 = livePrice + moveDist * 1.000;
+    sl = livePrice - moveDist * 0.618;
+    sizeVal = '100% من المحفظة';
+    ruleSummary = 'زخم كسرى صاعد متسارع مدعوم باتجاهية هيرست وتوافق فيبوناتشي.';
+    confluenceScore = Math.round(88 + (hurst > 0.55 ? 5 : 2));
+  }
+  // 4. Partial Buy (شراء جزئي):
+  else if ((hurst > 0.51 && recent3 < 0 && rsi >= 38 && rsi <= 58) || (fracSlope >= -0.04 && rsi >= 40 && rsi <= 58 && livePrice >= (fiboLevels.fibo500 || 0))) {
+    action = 'PARTIAL_BUY';
+    actionLabelAr = 'شراء جزئي (PARTIAL BUY)';
+    actionLabelEn = 'PARTIAL BUY';
+    badgeClass = 'partial-buy';
+    entry = livePrice;
+    tp1 = livePrice + moveDist * 0.618;
+    tp2 = livePrice + moveDist * 1.000;
+    sl = livePrice - moveDist * 0.618;
+    sizeVal = '50% من المحفظة';
+    ruleSummary = 'تراجع تصحيحي نحو الدعم داخل اتجاه عام صاعد؛ فرصة تمركز بنصف العقد.';
+    confluenceScore = Math.round(82 + (hurst > 0.52 ? 4 : 0));
+  }
+
+  const risk = Math.abs(entry - sl);
+  const reward = Math.abs(tp1 - entry);
+  const rr = risk > 0 ? (reward / risk).toFixed(1) : '2.0';
+
+  return {
+    action,
+    actionLabelAr,
+    actionLabelEn,
+    badgeClass,
+    entry,
+    tp1,
+    tp2,
+    sl,
+    rrRatio: `1 : ${rr}`,
+    sizeVal,
+    ruleSummary,
+    confluenceScore
+  };
+}
+
+/**
+ * Live Equation Metrics Pill Renderer
+ */
+function renderLiveEquationMetrics(livePrice, lastFrac, dailyVolPct, moveDist, quantDec) {
+  const eq1 = document.getElementById('eq1LiveVal');
+  const eq2 = document.getElementById('eq2LiveVal');
+  const eq3 = document.getElementById('eq3LiveVal');
+  const eq4 = document.getElementById('eq4LiveVal');
+  const eq5 = document.getElementById('eq5LiveVal');
+
+  if (eq1) {
+    const memPct = Math.round((1 - State.optimalD) * 100);
+    eq1.innerText = `D^d: ${lastFrac >= 0 ? '+' : ''}${lastFrac.toFixed(3)} | d* = ${State.optimalD.toFixed(2)} | حفظ الذاكرة: ${memPct}%`;
+  }
+  if (eq2) {
+    const patternType = State.hurst > 0.52 ? 'اتجاهي صاعد' : State.hurst < 0.48 ? 'ارتداد متوسط' : 'عشوائي';
+    eq2.innerText = `H: ${State.hurst.toFixed(2)} | النمط: ${patternType} | البعد D_F: ${(2 - State.hurst).toFixed(2)}`;
+  }
+  if (eq3) {
+    eq3.innerText = `σ = ${(dailyVolPct * 100).toFixed(2)}% | نطاق R1: +${formatPrice(moveDist * 0.618)} | نطاق S1: -${formatPrice(moveDist * 0.618)}`;
+  }
+  if (eq4 && quantDec) {
+    eq4.innerText = `التوافق Φ: ${quantDec.confluenceScore}% | الإشارة: ${quantDec.actionLabelAr}`;
+  }
+  if (eq5 && quantDec) {
+    eq5.innerText = `القرار: ${quantDec.actionLabelAr} | الدخول: ${formatPrice(quantDec.entry)} | R:R = ${quantDec.rrRatio} | العقد: ${quantDec.sizeVal}`;
+  }
+}
+
+/**
  * Master Calculation Pipeline
  */
 function updateAllCalculations() {
@@ -901,7 +1047,7 @@ function updateAllCalculations() {
 
   // 1. Fractional Derivative
   State.fractionalSeries = fractionalDifferentiation(prices, d);
-  const lastFrac = State.fractionalSeries[State.fractionalSeries.length - 1];
+  const lastFrac = State.fractionalSeries[State.fractionalSeries.length - 1] || 0;
 
   // 2. Hurst Exponent
   State.hurst = computeHurstExponent(prices);
@@ -928,7 +1074,7 @@ function updateAllCalculations() {
     let dir = 'BUY';
     let isPiv = false;
     
-    if (Math.abs(State.hurst - 0.50) < 0.035 || Math.abs(lastFrac / (livePrice * 0.01)) < 0.08) {
+    if (Math.abs(State.hurst - 0.50) < 0.035 || Math.abs(lastFrac) < 0.08) {
       isPiv = true;
       dir = 'PIVOT';
     } else if (lastFrac >= 0) {
@@ -945,7 +1091,7 @@ function updateAllCalculations() {
     const s2 = livePrice - moveDist * 1.000;
     const s3 = livePrice - moveDist * 1.618;
 
-    const prob = isPiv ? 52 : Math.round(Math.min(84, Math.max(68, (State.hurst > 0.52 ? 76 : 70) + (Math.abs(lastFrac) > 0.1 ? 4 : 0))));
+    const prob = isPiv ? 55 : Math.round(Math.min(94, Math.max(72, (State.hurst > 0.52 ? 82 : 75) + (Math.abs(lastFrac) > 0.1 ? 5 : 0))));
 
     return {
       ...h,
@@ -967,6 +1113,10 @@ function updateAllCalculations() {
   const activeResult = State.multiHorizonResults.find(h => h.id === State.activeHorizonId) || State.multiHorizonResults[0];
   State.isPivot = activeResult.isPivot;
 
+  // Compute unified quantitative action
+  const quantDec = computeQuantDecision(prices, livePrice, State.fractionalSeries, State.hurst, State.rsi, State.fiboLevels, activeResult);
+  State.currentDecision = quantDec;
+
   // Render All UI Sections
   renderLiveBanner(livePrice, currentAsset.currency);
   renderOptimalDSection();
@@ -977,6 +1127,7 @@ function updateAllCalculations() {
   renderInstitutionalVerdict(activeResult, livePrice);
   renderInvestorPersona(State.activePersona || 'scalper');
   renderBrokerChecklist(State.activePersona || 'scalper');
+  renderLiveEquationMetrics(livePrice, lastFrac, dailyVolPct, activeResult.moveDist, quantDec);
   renderChart(prices, State.fractionalSeries, livePrice, activeResult);
   renderOscillatorChart(State.fractionalSeries);
 }
@@ -1036,96 +1187,98 @@ function renderInvestorPersona(persona = 'scalper') {
 
   const livePrice = State.liveQuote || State.prices[State.prices.length - 1];
   const activeHorizon = State.multiHorizonResults.find(h => h.id === State.activeHorizonId) || State.multiHorizonResults[0] || {};
-  const isBuy = activeHorizon.direction === 'BUY';
-  const goldenFibo = State.fiboLevels.fibo618 || livePrice;
+  const quantDec = State.currentDecision || computeQuantDecision(State.prices, livePrice, State.fractionalSeries, State.hurst, State.rsi, State.fiboLevels, activeHorizon);
 
   // Sync Tabs Active State
   document.querySelectorAll('.investor-tab').forEach(t => {
     t.classList.toggle('active', t.dataset.persona === persona);
   });
 
-  let personaTitle = '';
-  let horizonBadge = '';
-  let entryPoint = '';
-  let tp1 = '';
-  let tp2 = '';
-  let stopLoss = '';
-  let rrRatio = '';
-  let advice = '';
+  let personaName = '';
+  let horizonLabel = '';
+  let tp1 = quantDec.tp1;
+  let tp2 = quantDec.tp2;
+  let sl = quantDec.sl;
+  let personaSize = quantDec.sizeVal;
+  let execRule = '';
 
   if (persona === 'scalper') {
-    personaTitle = '⚡ خطة المضارب السريع اللحظي (Tick-by-Tick & Scalper Execution)';
-    horizonBadge = 'أفق التداول: 5 دقائق إلى 1 ساعة';
-    entryPoint = formatPrice(livePrice);
-    tp1 = formatPrice(activeHorizon.r1);
-    tp2 = formatPrice(activeHorizon.r2 || activeHorizon.r1 * 1.012);
-    stopLoss = formatPrice(activeHorizon.s1);
-    rrRatio = '1 : 2.5';
-    advice = 'حركة التيك-باي-تيك سريعة؛ لا تلاحق الشموع بعد صعودها، راقب انعطاف مشتقة الذاكرة الكسرية D^d واقتنص الهدف السريع R1 فور لمسه دون طمع، مع إغلاق فوري عند كسر الوقف S1.';
+    personaName = '⚡ مضارب سريع (Scalper)';
+    horizonLabel = '30د - 1س';
+    tp1 = activeHorizon.r1;
+    tp2 = activeHorizon.r2;
+    sl = activeHorizon.s1;
+    execRule = 'اقتناص TP1 فور لمسه، ورفع الوقف لنقطة الدخول فوراً.';
   } else if (persona === 'retail') {
-    personaTitle = '🎯 خطة المتداول اليومي وتجزئة السوق (Day Trader & Swing Plan)';
-    horizonBadge = 'أفق التداول: جلسة اليوم إلى إغلاق شمعة 4 ساعات';
-    entryPoint = formatPrice(isBuy ? Math.min(livePrice, goldenFibo * 1.002) : livePrice);
-    tp1 = formatPrice(activeHorizon.r1);
-    tp2 = formatPrice(activeHorizon.r2);
-    stopLoss = formatPrice(activeHorizon.s1);
-    rrRatio = '1 : 3.4';
-    advice = 'تجنب الدخول العشوائي في منتصف النطاق. التمركز الأمثل يكون باختبار مستوى الجيب الذهبي (61.8%) أو الدعم الكسري S1 مع تأكيد تراجع RSI دون الـ 65 للشراء.';
+    personaName = '🎯 متداول يومي (Day Trader)';
+    horizonLabel = 'جلسة اليوم';
+    tp1 = activeHorizon.r1;
+    tp2 = activeHorizon.r2;
+    sl = activeHorizon.s1;
+    execRule = 'تأكيد إغلاق شمعة 4 ساعات دون كسر الدعم S1.';
   } else if (persona === 'whale') {
-    personaTitle = '🐋 خطة المستثمر المؤسسي والمحافظ الكبرى (Institutional & Whale Desk)';
-    horizonBadge = 'أفق التداول: أسبوعي إلى شهري (إعادة توازن مؤسسي)';
-    entryPoint = `تجميع مقسم على 4 دفعات بمتوسط ${formatPrice(livePrice)}`;
-    tp1 = formatPrice(activeHorizon.r2 || activeHorizon.r1 * 1.08);
-    tp2 = formatPrice(activeHorizon.r2 * 1.15);
-    stopLoss = formatPrice(activeHorizon.s2 || activeHorizon.s1 * 0.94);
-    rrRatio = '1 : 4.8';
-    advice = `معامل هيرست (H = ${State.hurst.toFixed(2)}) يثبت رياضياً وجود ذاكرة اتجاهية ممتدة (Long-Memory). المؤسسات تجمع مع موجات الذعر المؤقتة، وتتجاهل التذبذب اللحظي لحصد الأرباح عند التوسع R2.`;
+    personaName = '🐋 محفظة كبرى (Institutional)';
+    horizonLabel = 'أسبوعي - شهري';
+    tp1 = activeHorizon.r2;
+    tp2 = activeHorizon.r3;
+    sl = activeHorizon.s2;
+    personaSize = 'تجميع مقسم';
+    execRule = 'تجاهل التذبذب اللحظي والتمسك بالأهداف الاستراتيجية.';
   } else {
-    // macro
-    personaTitle = '📈 خطة المستثمر الاستراتيجي والماكرو (Macro Position Investor)';
-    horizonBadge = 'أفق التداول: فصلي وسنوي (3 أشهر إلى سنة)';
-    entryPoint = `شراء استراتيجي تراكمي حول السعر الحالي ${formatPrice(livePrice)}`;
-    tp1 = formatPrice(activeHorizon.r2 * 1.25);
-    tp2 = formatPrice(activeHorizon.r2 * 1.618);
-    stopLoss = formatPrice(activeHorizon.s2 * 0.88);
-    rrRatio = '1 : 6.2';
-    advice = 'الأصول القوية كالبيتكوين والذهب وتون كوين تخضع لدورات كسيرية فائقة. الذاكرة التاريخية تتفوق على الضوضاء اليومية؛ احتفظ بالمركز حتى بلوغ أهداف التوسع السنوية.';
+    personaName = '📈 مستثمر ماكرو (Macro)';
+    horizonLabel = 'فصلي - سنوي';
+    tp1 = activeHorizon.r3;
+    tp2 = activeHorizon.r3 * 1.25;
+    sl = activeHorizon.s3;
+    personaSize = 'تراكمي';
+    execRule = 'احتفاظ كامل حتى اكتمال الدورة الكسيرية الكبرى.';
   }
 
   container.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 6px;">
-      <span style="font-weight: 700; color: #fff; font-size: 13px;">${personaTitle}</span>
-      <span class="live-indicator" style="font-size: 11px; color: var(--accent-cyan); border-color: rgba(56, 189, 248, 0.3);">${horizonBadge}</span>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-weight: 700; color: #fff; font-size: 13px;">${personaName}</span>
+        <span class="signal-badge ${quantDec.badgeClass}" style="font-size: 11px; padding: 2px 8px;">${quantDec.actionLabelAr}</span>
+      </div>
+      <span class="live-indicator" style="font-size: 10px; color: var(--accent-cyan); border-color: rgba(56, 189, 248, 0.3);">${horizonLabel}</span>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 12px;">
-      <div style="background: #060b17; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px;">
-        <div style="font-size: 11px; color: #94a3b8;">نقطة التمركز والدخول المثالية:</div>
-        <div style="font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: #38bdf8; margin-top: 2px;">${entryPoint}</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-bottom: 8px;">
+      <div style="background: #060b17; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px;">
+        <div style="font-size: 10px; color: #94a3b8;">الدخول (Entry):</div>
+        <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: #38bdf8;">${formatPrice(quantDec.entry)}</div>
       </div>
-      <div style="background: #060b17; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px;">
-        <div style="font-size: 11px; color: #94a3b8;">جني الأرباح 1 (Target R1):</div>
-        <div style="font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: #34d399; margin-top: 2px;">${tp1}</div>
+      <div style="background: #060b17; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px;">
+        <div style="font-size: 10px; color: #94a3b8;">الهدف 1 (TP1):</div>
+        <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: #34d399;">${formatPrice(tp1)}</div>
       </div>
-      <div style="background: #060b17; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px;">
-        <div style="font-size: 11px; color: #94a3b8;">الوقف الصارم (Hard Stop S1):</div>
-        <div style="font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: #fb7185; margin-top: 2px;">${stopLoss}</div>
+      <div style="background: #060b17; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px;">
+        <div style="font-size: 10px; color: #94a3b8;">الهدف 2 (TP2):</div>
+        <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: #a78bfa;">${formatPrice(tp2)}</div>
       </div>
-      <div style="background: #060b17; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px;">
-        <div style="font-size: 11px; color: #94a3b8;">العائد للمخاطرة (R:R Ratio):</div>
-        <div style="font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--accent-gold); margin-top: 2px;">${rrRatio}</div>
+      <div style="background: #060b17; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px;">
+        <div style="font-size: 10px; color: #94a3b8;">الوقف (Stop Loss):</div>
+        <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: #fb7185;">${formatPrice(sl)}</div>
+      </div>
+      <div style="background: #060b17; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px;">
+        <div style="font-size: 10px; color: #94a3b8;">العائد/المخاطرة (R:R):</div>
+        <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--accent-gold);">${quantDec.rrRatio}</div>
+      </div>
+      <div style="background: #060b17; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px;">
+        <div style="font-size: 10px; color: #94a3b8;">حجم العقد (Size):</div>
+        <div style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: #fde68a;">${personaSize}</div>
       </div>
     </div>
 
-    <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6; background: rgba(30, 41, 59, 0.4); padding: 10px; border-radius: 6px; border-right: 3px solid var(--accent-cyan);">
-      <strong>💡 التوجيه الكمي المخصص:</strong> ${advice}
+    <div style="font-size: 11px; color: #cbd5e1; background: rgba(30, 41, 59, 0.4); padding: 6px 10px; border-radius: 6px; border-right: 3px solid var(--accent-cyan); display: flex; align-items: center; gap: 6px;">
+      <strong style="color: var(--accent-cyan);">قاعدة التنفيذ:</strong> <span>${execRule}</span>
     </div>
   `;
 }
 
 /**
  * Broker Pre-Trade Checklist Renderer
- * Answers the 5 essential questions a broker asks before pulling the trigger
+ * High-density quantitative status chips
  */
 function renderBrokerChecklist(persona = 'scalper') {
   const container = document.getElementById('brokerQuestionsContainer');
@@ -1133,52 +1286,28 @@ function renderBrokerChecklist(persona = 'scalper') {
 
   const livePrice = State.liveQuote || State.prices[State.prices.length - 1];
   const activeHorizon = State.multiHorizonResults.find(h => h.id === State.activeHorizonId) || State.multiHorizonResults[0] || {};
+  const quantDec = State.currentDecision || computeQuantDecision(State.prices, livePrice, State.fractionalSeries, State.hurst, State.rsi, State.fiboLevels, activeHorizon);
+
   const isHurstPersistent = State.hurst >= 0.52;
 
-  const questions = [
-    {
-      q: '1. هل الاتجاه حقيقي أم مصيدة سيولة (Fakeout)؟',
-      a: isHurstPersistent
-        ? `الاتجاه حقيقي ومدعوم بذاكرة كسرية ممتدة (H = ${State.hurst.toFixed(2)} > 0.50). احتمالية كونه فخ سيولة منخفضة جداً.`
-        : `تنبيه: مؤشر هيرست (${State.hurst.toFixed(2)}) قريب من العشوائية (0.50)؛ يوصى بتقليص حجم العقد وانتظار زخم إضافي.`,
-      status: isHurstPersistent ? 'good' : 'warn'
-    },
-    {
-      q: '2. أين أضع الوقف الحسابي بدقة تمنع ضربه بالضوضاء؟',
-      a: `المستوى الآمن رياضياً هو ${formatPrice(activeHorizon.s1)}، حيث يقع خارج حزام تشتت التذبذب الكسري بنسبة ثقة 95%.`,
-      status: 'good'
-    },
-    {
-      q: '3. ما هو الهدف الرقمي الأقرب والأعلى احتمالاً؟',
-      a: `الهدف R1 عند ${formatPrice(activeHorizon.r1)} باحتمال وصول إحصائي ${activeHorizon.probability}% خلال أفق [${activeHorizon.nameAr}].`,
-      status: 'good'
-    },
-    {
-      q: '4. ما هي نسبة نجاح الصفقة وفق التوافق الرباعي؟',
-      a: `التوافق الحالي (الذاكرة الكسرية + هيرست + فيبوناتشي + RSI) يسجل نسبة نجاح ${activeHorizon.probability}%، وهي ضمن نطاق التميز المؤسسي.`,
-      status: 'good'
-    },
-    {
-      q: '5. متى تمنع المنظومة فتح الصفقة نهائياً؟',
-      a: `تُلغى الصفقة فوراً إذا انعكست مشتقة الذاكرة الكسرية D^d إلى الإشارة المعاكسة أو تم كسر مستوى الدعم S1 بإغلاق شمعة صريحة.`,
-      status: 'warn'
-    }
+  const items = [
+    { label: 'الاتجاه العام', val: isHurstPersistent ? `صاعد اتجاهي (H=${State.hurst.toFixed(2)})` : `تذبذب عرضي (H=${State.hurst.toFixed(2)})`, color: isHurstPersistent ? '#34d399' : '#fbbf24' },
+    { label: 'الوقف الآمن SL', val: formatPrice(quantDec.sl), color: '#fb7185' },
+    { label: 'الهدف الأقرب TP1', val: `${formatPrice(quantDec.tp1)} (${activeHorizon.probability}%)`, color: '#34d399' },
+    { label: 'العائد للمخاطرة R:R', val: quantDec.rrRatio, color: 'var(--accent-gold)' },
+    { label: 'شرط إلغاء الصفقة', val: `إغلاق شمعة دون ${formatPrice(quantDec.sl)}`, color: '#f472b6' }
   ];
 
-  container.innerHTML = questions.map(item => `
-    <div style="background: #080e1e; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px;">
-      <div style="font-size: 11px; font-weight: 700; color: ${item.status === 'good' ? '#38bdf8' : '#fbbf24'}; margin-bottom: 4px;">
-        ${item.q}
-      </div>
-      <div style="font-size: 11px; color: #94a3b8; line-height: 1.5;">
-        ${item.a}
-      </div>
+  container.innerHTML = items.map(item => `
+    <div style="background: #080e1e; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+      <span style="font-size: 11px; color: #94a3b8; font-weight: 600;">${item.label}:</span>
+      <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: ${item.color};">${item.val}</span>
     </div>
   `).join('');
 }
 
 /**
- * Hero Prediction Box (Direction, R1/R2, S1/S2)
+ * Hero Prediction Box (Direction, R1/R2, S1/S2, Action Strip)
  */
 function renderHeroPrediction(horizonRes, livePrice, lastFrac) {
   const pBox = document.getElementById('predictionBox');
@@ -1192,40 +1321,41 @@ function renderHeroPrediction(horizonRes, livePrice, lastFrac) {
   const s2Val = document.getElementById('s2Value');
   const hurstVal = document.getElementById('hurstValue');
 
+  const quantDec = State.currentDecision || computeQuantDecision(State.prices, livePrice, State.fractionalSeries, State.hurst, State.rsi, State.fiboLevels, horizonRes);
+
   if (pBox) {
-    pBox.className = 'prediction-box ' + (horizonRes.direction === 'BUY' ? 'bullish' : horizonRes.direction === 'SELL' ? 'bearish' : 'pivot');
+    pBox.className = 'prediction-box ' + (quantDec.badgeClass === 'strong-buy' || quantDec.badgeClass === 'partial-buy' ? 'bullish' : quantDec.badgeClass === 'strong-sell' || quantDec.badgeClass === 'partial-exit' ? 'bearish' : 'pivot');
   }
 
   if (badge) {
-    if (horizonRes.direction === 'BUY') {
-      badge.className = 'signal-badge buy';
-      badge.innerText = State.lang === 'ar' ? 'شراء قوي (BUY)' : 'STRONG BUY';
-    } else if (horizonRes.direction === 'SELL') {
-      badge.className = 'signal-badge sell';
-      badge.innerText = State.lang === 'ar' ? 'بيع قوي (SELL)' : 'STRONG SELL';
-    } else {
-      badge.className = 'signal-badge pivot';
-      badge.innerText = State.lang === 'ar' ? 'منطقة توازن محورية (PIVOT)' : 'CRITICAL PIVOT';
-    }
+    badge.className = 'signal-badge ' + quantDec.badgeClass;
+    badge.innerText = State.lang === 'ar' ? quantDec.actionLabelAr : quantDec.actionLabelEn;
   }
 
-  if (confVal) confVal.innerText = `${horizonRes.probability}%`;
+  if (confVal) confVal.innerText = `${quantDec.confluenceScore}%`;
 
+  // Minimize text completely: hide narrative paragraph
   if (biasDesc) {
-    if (horizonRes.isPivot) {
-      biasDesc.innerText = State.lang === 'ar'
-        ? `تنبيه محوري: السعر في منطقة توازن حرج (H=${State.hurst.toFixed(2)}). التوقع عالي الحساسية؛ نوصي بانتظار شمعة الساعتين القادمتين لتأكيد الذاكرة، أو التداول بنصف حجم العقد عند مستويات الدعم.`
-        : `Pivot Equilibrium: Market is near critical balance (H=${State.hurst.toFixed(2)}). High uncertainty; waiting for the 2-hour close is statistically prudent.`;
-    } else if (horizonRes.direction === 'BUY') {
-      biasDesc.innerText = State.lang === 'ar'
-        ? `عزم كسرى صاعد ذو ذاكرة حركية قوية (H=${State.hurst.toFixed(2)} > 0.50). التذبذب المتوقع لأفق (${horizonRes.nameAr}) هو ±${horizonRes.volPct}% نحو المقاومات.`
-        : `Bullish fractional memory momentum (H=${State.hurst.toFixed(2)}). Projected volatility over (${horizonRes.nameEn}) is ±${horizonRes.volPct}% targeting resistances.`;
-    } else {
-      biasDesc.innerText = State.lang === 'ar'
-        ? `عزم كسرى هابط والذاكرة الحركية تدعم استمرار الضغط البيعي (H=${State.hurst.toFixed(2)}). التذبذب المقدر هو ±${horizonRes.volPct}% نحو الدعوم.`
-        : `Bearish fractional memory momentum (H=${State.hurst.toFixed(2)}). Projected volatility is ±${horizonRes.volPct}% targeting key supports.`;
-    }
+    biasDesc.innerText = '';
+    biasDesc.style.display = 'none';
   }
+
+  // Populate quantitative action strip
+  const entryPill = document.getElementById('entryPriceVal');
+  const tp1Pill = document.getElementById('tp1Val');
+  const tp2Pill = document.getElementById('tp2Val');
+  const slPill = document.getElementById('slVal');
+  const rrPill = document.getElementById('rrVal');
+  const sizePill = document.getElementById('sizeVal');
+  const rulePill = document.getElementById('quantStatusSummary');
+
+  if (entryPill) entryPill.innerText = formatPrice(quantDec.entry);
+  if (tp1Pill) tp1Pill.innerText = `${formatPrice(quantDec.tp1)} (+${(((quantDec.tp1 - quantDec.entry) / quantDec.entry) * 100).toFixed(1)}%)`;
+  if (tp2Pill) tp2Pill.innerText = `${formatPrice(quantDec.tp2)} (+${(((quantDec.tp2 - quantDec.entry) / quantDec.entry) * 100).toFixed(1)}%)`;
+  if (slPill) slPill.innerText = `${formatPrice(quantDec.sl)} (${(((quantDec.sl - quantDec.entry) / quantDec.entry) * 100).toFixed(1)}%)`;
+  if (rrPill) rrPill.innerText = quantDec.rrRatio;
+  if (sizePill) sizePill.innerText = quantDec.sizeVal;
+  if (rulePill) rulePill.innerText = quantDec.ruleSummary;
 
   if (r1Val) r1Val.innerText = formatPrice(horizonRes.r1);
   if (r2Val) r2Val.innerText = formatPrice(horizonRes.r2);
@@ -1308,25 +1438,35 @@ function renderMultiHorizonTable() {
 
 /**
  * Formal Institutional Executive Verdict
+ * Streamlined High-Density Quantitative Status Bar
  */
 function renderInstitutionalVerdict(activeHorizon, livePrice) {
   const box = document.getElementById('institutionalVerdictBox');
   if (!box) return;
 
-  const assetName = State.lang === 'ar' ? ASSET_REGISTRY[State.activeAssetKey].nameAr : ASSET_REGISTRY[State.activeAssetKey].nameEn;
-  const nowStr = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  const goldenDist = Math.abs(livePrice - State.fiboLevels.fibo618);
-  const goldenPct = ((goldenDist / livePrice) * 100).toFixed(2);
+  const asset = ASSET_REGISTRY[State.activeAssetKey] || State.customAssets[State.activeAssetKey] || {};
+  const assetName = State.lang === 'ar' ? (asset.nameAr || State.activeAssetKey) : (asset.nameEn || State.activeAssetKey);
+  const quantDec = State.currentDecision || computeQuantDecision(State.prices, livePrice, State.fractionalSeries, State.hurst, State.rsi, State.fiboLevels, activeHorizon);
 
-  const verdictAr = `
-    <strong>[تقرير التوافق المؤسسي • ${nowStr}]:</strong><br/>
-    بناءً على تفاضل الذاكرة الكسرية بالرتبة المثالية <code>d* = ${State.optimalD.toFixed(2)}</code>، سجلت السلسلة السعرية لـ <strong>${assetName}</strong> عند السعر <code>${formatPrice(livePrice)}</code> أس هيرست <code>H = ${State.hurst.toFixed(2)}</code> (${State.hurst > 0.50 ? 'ذاكرة اتجاهية استمرارية' : 'ذاكرة ارتدادية نحو المتوسط'}).
-    <br/>
-    يقع السعر حالياً على بعد <strong>${goldenPct}%</strong> من النسبة الذهبية لفيبوناتشي (61.8% = ${formatPrice(State.fiboLevels.fibo618)}) ومؤشر القوة النسبية RSI عند <strong>${State.rsi}</strong>.
-    تتوافق قراءة الذاكرة الكسرية للأفق الزمني [${activeHorizon.nameAr}] بترجيح <strong>${activeHorizon.direction === 'BUY' ? 'استمرار الصعود نحو المقاومة الأولى R1' : activeHorizon.direction === 'SELL' ? 'استمرار التصحيح نحو الدعم الأول S1' : 'انتظار اكتمال شمعة الساعتين لثبوت المحور'}</strong> مع نقطة وقف خسارة هيكلية واضحة عند <code>${formatPrice(activeHorizon.s1)}</code>، مما يحقق نسبة مخاطرة إلى عائد (R:R) إحصائية ممتازة.
+  box.innerHTML = `
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;">
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <span style="font-weight: 700; color: #fff;">${assetName}</span>
+        <span style="font-family: var(--font-mono); color: #38bdf8; font-weight: 700;">${formatPrice(livePrice)} ${asset.currency || 'USD'}</span>
+        <span class="signal-badge ${quantDec.badgeClass}" style="font-size: 11px; padding: 2px 8px;">${quantDec.actionLabelAr}</span>
+      </div>
+      <div style="font-family: var(--font-mono); font-size: 11px; color: #cbd5e1; display: flex; gap: 10px; flex-wrap: wrap;">
+        <span>دخول: <b style="color: #38bdf8;">${formatPrice(quantDec.entry)}</b></span>
+        <span>TP1: <b style="color: #34d399;">${formatPrice(quantDec.tp1)}</b></span>
+        <span>TP2: <b style="color: #a78bfa;">${formatPrice(quantDec.tp2)}</b></span>
+        <span>SL: <b style="color: #fb7185;">${formatPrice(quantDec.sl)}</b></span>
+        <span>R:R: <b style="color: var(--accent-gold);">${quantDec.rrRatio}</b></span>
+        <span>H: <b style="color: #34d399;">${State.hurst.toFixed(2)}</b></span>
+        <span>RSI: <b style="color: #38bdf8;">${State.rsi}</b></span>
+        <span>تطابق: <b style="color: var(--accent-gold);">${quantDec.confluenceScore}%</b></span>
+      </div>
+    </div>
   `;
-
-  box.innerHTML = verdictAr;
 }
 
 function formatPrice(val) {

@@ -646,22 +646,39 @@ body {
   letter-spacing: 0.5px;
 }
 
-.signal-badge.buy {
-  background: #065f46;
+.signal-badge.buy,
+.signal-badge.strong-buy {
+  background: #064e3b;
   color: #34d399;
   border: 1px solid #059669;
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.2);
 }
 
-.signal-badge.sell {
+.signal-badge.partial-buy {
+  background: #0f3e3a;
+  color: #2dd4bf;
+  border: 1px solid #0d9488;
+}
+
+.signal-badge.partial-exit {
+  background: #7c2d12;
+  color: #fb923c;
+  border: 1px solid #ea580c;
+}
+
+.signal-badge.sell,
+.signal-badge.strong-sell {
   background: #881337;
   color: #fb7185;
   border: 1px solid #e11d48;
+  box-shadow: 0 0 10px rgba(251, 113, 133, 0.2);
 }
 
-.signal-badge.pivot {
-  background: #78350f;
-  color: #fde68a;
-  border: 1px solid #d97706;
+.signal-badge.pivot,
+.signal-badge.hold {
+  background: #1e293b;
+  color: #cbd5e1;
+  border: 1px solid #475569;
 }
 
 /* 4-Level Resistance & Support Grid */
@@ -1267,3 +1284,69 @@ body {
     height: 95px;
   }
 }
+
+/* Concise Quantitative Terms & Values Layout */
+.quant-action-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 10px 0;
+  padding: 8px 10px;
+  background: #030712;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.quant-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #080f20;
+  border: 1px solid #1a2948;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+}
+
+.quant-pill .q-label {
+  color: #94a3b8;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.quant-pill .q-val {
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.quant-pill .q-val.tp {
+  color: #34d399;
+}
+
+.quant-pill .q-val.sl {
+  color: #fb7185;
+}
+
+.quant-pill .q-val.gold {
+  color: #fbbf24;
+}
+
+.quant-pill .q-val.cyan {
+  color: #38bdf8;
+}
+
+.eq-live-pill {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 8px;
+  margin-top: 6px;
+  border-radius: 6px;
+  background: #020617;
+  border: 1px solid #1e293b;
+  color: #e2e8f0;
+  direction: ltr;
+  text-align: center;
+  word-break: break-all;
+}
+

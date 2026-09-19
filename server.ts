@@ -44,6 +44,15 @@ const BINANCE_MAP: Record<string, string> = {
 
 // EGX Egyptian Stocks & Commodities calibrated datasets
 const LOCAL_ASSETS_MAP: Record<string, { symbol: string; name: string; price: number; change24h: number; currency: string; source: string; closes: number[] }> = {
+  silver: {
+    symbol: 'XAGUSD',
+    name: 'الفضة (Silver - XAG/USD)',
+    price: 31.85,
+    change24h: 0.65,
+    currency: 'USD',
+    source: 'Spot Silver Energy & Metals',
+    closes: [30.60, 30.95, 30.80, 31.20, 31.55, 31.35, 31.80, 32.15, 31.95, 32.30, 32.55, 32.20, 32.05, 32.18, 31.90, 32.05, 32.15, 31.98, 31.90, 32.02, 32.08, 31.95, 31.88, 31.85]
+  },
   tmgh: {
     symbol: 'TMGH.CA',
     name: 'مجموعة طلعت مصطفى (TMGH.CA)',
