@@ -1,6 +1,6 @@
 {
   "name": "Fractional Dynamics & Market Memory Engine",
-  "description": "Institutional quantitative mathematical engine computing fractional-order derivatives, rolling Hurst exponents, and multi-horizon market memory projections for Cryptocurrencies (BTC, ETH, XRP, TRX, ZEC, LTC, DASH, TON), Precious Metals (Gold, Silver), and Egyptian Stocks (EGX).",
+  "description": "High-precision quantitative financial calculator and mathematical memory engine for Gram / The Open Network (TON), computing 60 instant quantitative indicators, rolling Hurst exponents, fractal support/resistance levels, and multi-horizon trade signals.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

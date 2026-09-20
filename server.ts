@@ -101,6 +101,37 @@ app.get('/api/quote', async (req, res) => {
     return res.json(quoteCache[cacheKey].data);
   }
 
+  // 0. Gram / TON Official TON Blockchain API (TonAPI by TON Foundation)
+  if (asset === 'gram' || asset === 'ton' || rawSymbol.includes('TON') || rawSymbol.includes('GRAM')) {
+    try {
+      const tonRes = await fetch('https://tonapi.io/v2/rates?tokens=ton&currencies=usd');
+      if (tonRes.ok) {
+        const tonJson: any = await tonRes.json();
+        const tonData = tonJson?.rates?.TON;
+        if (tonData && tonData.prices && tonData.prices.USD) {
+          const price = parseFloat(tonData.prices.USD);
+          const diff24hStr = (tonData.diff_24h?.USD || '+0%').replace('%', '').replace('+', '').replace('−', '-');
+          const change24h = parseFloat(diff24hStr) || 0;
+          const data = {
+            symbol: 'GRAM/USD (TON)',
+            name: 'عملة الجرام (شبكة التون - The Open Network)',
+            price: parseFloat(price.toFixed(4)),
+            change24h,
+            diff7d: tonData.diff_7d?.USD || '0%',
+            diff30d: tonData.diff_30d?.USD || '0%',
+            currency: 'USD',
+            source: 'TonAPI (Official TON Foundation)',
+            timestamp: new Date().toISOString()
+          };
+          quoteCache[cacheKey] = { data, time: now };
+          return res.json(data);
+        }
+      }
+    } catch (e) {
+      console.warn('TonAPI rate fetch error:', e);
+    }
+  }
+
   // 1. Precious Metals: Silver (XAG/USD) Spot
   if (asset === 'silver' || rawSymbol === 'XAGUSD' || rawSymbol === 'SILVER' || rawSymbol === 'XAG') {
     try {
@@ -273,6 +304,23 @@ app.get('/api/klines', async (req, res) => {
   const now = Date.now();
   if (klinesCache[cacheKey] && now - klinesCache[cacheKey].time < CACHE_TTL_MS * 5) {
     return res.json({ closes: klinesCache[cacheKey].data });
+  }
+
+  // 0. Gram / TON Official TON Blockchain Chart Series (TonAPI)
+  if (asset === 'gram' || asset === 'ton' || rawSymbol.includes('TON') || rawSymbol.includes('GRAM')) {
+    try {
+      const tonChartRes = await fetch(`https://tonapi.io/v2/rates/chart?token=ton&currency=usd&points_count=${limit}`);
+      if (tonChartRes.ok) {
+        const chartJson: any = await tonChartRes.json();
+        if (chartJson?.points && Array.isArray(chartJson.points) && chartJson.points.length >= 8) {
+          const closes = chartJson.points.map((pt: any) => parseFloat(pt[1])).filter((c: number) => !isNaN(c));
+          klinesCache[cacheKey] = { data: closes, time: now };
+          return res.json({ closes, source: 'TonAPI Official Chart Series' });
+        }
+      }
+    } catch (e) {
+      console.warn('TonAPI chart fetch error:', e);
+    }
   }
 
   // 1. Precious Metals: Silver (XAG/USD)
