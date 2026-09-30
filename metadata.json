@@ -1,6 +1,6 @@
 {
   "name": "Fractional Dynamics & Market Memory Engine",
-  "description": "High-precision quantitative financial calculator and mathematical memory engine for Gram / The Open Network (TON), computing 60 instant quantitative indicators, rolling Hurst exponents, fractal support/resistance levels, and multi-horizon trade signals.",
+  "description": "High-precision quantitative financial calculator and mathematical memory engine for Gram / The Open Network (TON), computing 60 instant quantitative indicators, temporal forecasting matrix (ETA), rolling Hurst exponents, fractal support/resistance levels, and differentiated multi-horizon trade signals.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

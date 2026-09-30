@@ -3,839 +3,1015 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>حاسبة الذاكرة الكسرية - عملة الجرام (شبكة التون TON)</title>
-  <meta name="description" content="محرك الحسابات الكمية والذاكرة الكسرية لعملة الجرام على شبكة التون - 60 إجابة كمية مباشرة لدعوم ومقاومات وأهداف التداول اللحظي والمتوسط" />
+  <title>منصة الجرام (TON) - الذاكرة الكسرية والرسم البياني الاحترافي ومصفوفة الـ 60 مؤشراً</title>
+  <meta name="description" content="منصة التداول والتحليل الكمي الاحترافي لعملة الجرام على شبكة التون - رسم بياني مالي متطور مع مستويات الدعم والمقاومة وبولينجر وRSI ومصفوفة الـ 60 مؤشراً" />
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%88%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="./style.css" />
 </head>
-<body>
+<body class="terminal-app">
 
-  <!-- Main Calculator Header -->
-  <header class="calc-header" id="calcHeader">
-    <div class="calc-title-box">
-      <h1>
-        <span>💎 حاسبة عملة الجرام (Gram / TON Network)</span>
-        <span class="live-badge" id="liveBadge">
-          <span class="live-pulse-dot"></span>
-          بث لحظي (تحديث كل ثانيتين)
-        </span>
-      </h1>
-      <p>محرك التنبؤ الكسري وهيرست الكمي - 60 مؤشر رقمي فوري لصفقات التداول وإدارة رأس المال</p>
+  <!-- Top App Navigation Bar -->
+  <header class="top-navbar" id="topNavbar">
+    <div class="nav-brand">
+      <div class="brand-icon">💎</div>
+      <div class="brand-meta">
+        <div class="brand-title">منصة الجرام الكمية (Gram / The Open Network)</div>
+        <div class="brand-sub">الذاكرة الكسرية ومصفوفة الزمن والتحليل المباشر 80/20</div>
+      </div>
     </div>
 
-    <!-- Live Spot Hero Card -->
-    <div class="price-hero-card" id="priceHeroCard">
-      <div>
-        <div class="price-hero-label">سعر الجرام الحي (GRAM / USD)</div>
-        <div class="price-hero-val" id="heroPrice">$1.3807</div>
+    <!-- Live Market Ticker Pills in Top Bar -->
+    <div class="nav-stats-bar">
+      <!-- Live Spot Price (TonAPI) -->
+      <div class="nav-stat-pill price-pill" id="navSpotPill">
+        <span class="stat-dot"></span>
+        <span class="stat-label">سعر الجرام الحي:</span>
+        <span class="stat-val font-mono" id="navLivePrice">$1.5165</span>
+        <span class="stat-badge up" id="navLiveChange">+0.99%</span>
       </div>
-      <div>
-        <span class="price-hero-change up" id="heroChange">+0.50%</span>
+
+      <!-- 24h High (Question 3) -->
+      <div class="nav-stat-pill" title="السؤال #03: أعلى سعر خلال 24 ساعة">
+        <span class="stat-label">أعلى 24س:</span>
+        <span class="stat-val text-green font-mono" id="navHigh24h">$1.5434</span>
       </div>
+
+      <!-- 24h Low (Question 4 - Verified from TonAPI) -->
+      <div class="nav-stat-pill highlight-pill" title="السؤال #04: أدنى سعر خلال 24 ساعة">
+        <span class="stat-label">أدنى 24س (#04):</span>
+        <span class="stat-val text-cyan font-mono" id="navLow24h">$1.4725</span>
+      </div>
+
+      <!-- Hurst Exponent -->
+      <div class="nav-stat-pill">
+        <span class="stat-label">أس هيرست H:</span>
+        <span class="stat-val text-purple font-mono" id="navHurst">0.682</span>
+      </div>
+
+      <!-- Live Connection Source -->
+      <div class="nav-stat-pill live-pill">
+        <span class="live-pulse-dot"></span>
+        <span id="navFeedSource">TonAPI (شبكة التون الرسمية)</span>
+      </div>
+
+      <!-- Sidebar Visibility Toggle Button -->
+      <button class="toggle-sidebar-btn" id="btnToggleSidebarNav" title="إظهار أو إخفاء القائمة الجانبية لتوسيع الرسم البياني">
+        <span class="sb-toggle-icon" id="toggleNavIcon">◀</span>
+        <span id="toggleNavLabel">إخفاء القائمة (توسيع الشارت)</span>
+      </button>
     </div>
   </header>
 
-  <!-- Quick Summary Bar: 4 Essential Execution Figures -->
-  <div class="quick-summary-bar" id="quickSummaryBar">
-    <div class="summary-card" id="cardQuickEntry">
-      <div class="summary-header">
-        <span>سعر الدخول المقترح (Optimal Entry)</span>
-        <span>#25</span>
-      </div>
-      <div class="summary-val text-blue" id="summaryEntry">$1.3780</div>
-      <div class="summary-sub" id="summaryEntrySub">عند أقرب ارتداد كسري لحظي</div>
-    </div>
+  <!-- Main Terminal Split Layout (RIGHT: 1/3 Quant Sidebar | LEFT: 2/3 Pro Chart) -->
+  <main class="terminal-body" id="terminalBody">
 
-    <div class="summary-card" id="cardQuickTP">
-      <div class="summary-header">
-        <span>الهدف الأول (Take Profit 1)</span>
-        <span>#26</span>
-      </div>
-      <div class="summary-val text-green" id="summaryTP">$1.4085</div>
-      <div class="summary-sub text-green" id="summaryTPSub">+2.01% ربح مستهدف</div>
-    </div>
+    <!-- =========================================================================
+         RIGHT PANEL: 60 Answers Quant Matrix Sidebar (الناحية اليمين)
+         ========================================================================= -->
+    <aside class="sidebar-quant-panel" id="sidebarQuantPanel">
 
-    <div class="summary-card" id="cardQuickSL">
-      <div class="summary-header">
-        <span>وقف الخسارة الحاسم (Strict SL)</span>
-        <span>#28</span>
-      </div>
-      <div class="summary-val text-red" id="summarySL">$1.3650</div>
-      <div class="summary-sub text-red" id="summarySLSub">-1.14% أقصى مخاطرة</div>
-    </div>
-
-    <div class="summary-card signal-card" id="cardQuickSignal">
-      <div class="summary-header">
-        <span>التوصية اللحظية الكلية (Decision)</span>
-        <span>#30</span>
-      </div>
-      <div class="summary-val text-green" id="summarySignal">شراء كمي مؤكد</div>
-      <div class="summary-sub" id="summarySignalSub">نسبة العائد للمخاطرة 1 : 2.35</div>
-    </div>
-  </div>
-
-  <!-- Main 60 Questions Calculator Container -->
-  <main class="calculator-container" id="calculatorContainer">
-
-    <!-- Group 1: Live Market & Feed (Q1 - Q8) -->
-    <section class="section-card" id="secMarketFeed">
-      <div class="section-header">
-        <div class="section-title">
-          <span>📡 1. بيانات السوق اللحظية وشبكة التون (Market Feed)</span>
-        </div>
-        <div class="section-badge">الأسئلة #1 - #8</div>
-      </div>
-      <div class="questions-grid">
-        <div class="q-item" id="q1">
-          <div class="q-top">
-            <span class="q-num">#01</span>
-            <span class="q-desc">السعر الفوري اللحظي (Spot Price)</span>
+      <!-- Sidebar Header & Filter Bar -->
+      <div class="sidebar-header">
+        <div class="sidebar-title-row">
+          <div class="sidebar-heading">
+            <span class="sb-icon">📋</span>
+            <span>مصفوفة الـ 60 مؤشراً الكمية</span>
           </div>
-          <div class="q-val-row">
-            <span class="q-val text-cyan" id="val_q1">$1.3807</span>
-            <span class="q-unit">USD</span>
-          </div>
+          <span class="counter-badge" id="sidebarCountBadge">60 / 60 مؤشر</span>
         </div>
 
-        <div class="q-item" id="q2">
-          <div class="q-top">
-            <span class="q-num">#02</span>
-            <span class="q-desc">نسبة التغير اليومي (24h Change)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q2">+0.50%</span>
-            <span class="q-unit">24H</span>
-          </div>
+        <!-- Search Input to locate any indicator instantly -->
+        <div class="sidebar-search-box">
+          <input
+            type="text"
+            id="quantSearchInput"
+            class="quant-search-input"
+            placeholder="🔍 ابحث في الأسئلة (دعم، أدنى سعر، هدف، وقف، زمن...)"
+            autocomplete="off"
+          />
+          <button class="clear-search-btn" id="clearSearchBtn" title="مسح البحث">✕</button>
         </div>
 
-        <div class="q-item" id="q3">
-          <div class="q-top">
-            <span class="q-num">#03</span>
-            <span class="q-desc">أعلى سعر خلال 24 ساعة (24h High)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val" id="val_q3">$1.3917</span>
-            <span class="q-unit">USD</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q4">
-          <div class="q-top">
-            <span class="q-num">#04</span>
-            <span class="q-desc">أدنى سعر خلال 24 ساعة (24h Low)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val" id="val_q4">$1.3517</span>
-            <span class="q-unit">USD</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q5">
-          <div class="q-top">
-            <span class="q-num">#05</span>
-            <span class="q-desc">نسبة التغير الأسبوعي (7-Day Diff)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-red" id="val_q5">-0.30%</span>
-            <span class="q-unit">7D</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q6">
-          <div class="q-top">
-            <span class="q-num">#06</span>
-            <span class="q-desc">نسبة التغير الشهري (30-Day Diff)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-red" id="val_q6">-1.31%</span>
-            <span class="q-unit">30D</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q7">
-          <div class="q-top">
-            <span class="q-num">#07</span>
-            <span class="q-desc">مصدر البيانات المعتمد (Feed Source)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val" style="font-size: 0.92rem; color: #94a3b8;" id="val_q7">TonAPI (Official TON)</span>
-            <span class="q-tag badge-buy">مباشر</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q8">
-          <div class="q-top">
-            <span class="q-num">#08</span>
-            <span class="q-desc">تردد التحديث اللحظي (Refresh Rate)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-gold" id="val_q8">كل ثانيتين (2s)</span>
-            <span class="q-unit" id="pulseCounter">نشط</span>
-          </div>
+        <!-- Quick Jump Categories -->
+        <div class="category-tabs-scroll" id="categoryTabs">
+          <button class="cat-tab active" data-cat="all">الكل (60)</button>
+          <button class="cat-tab" data-cat="g1">1. السوق (#1-#8)</button>
+          <button class="cat-tab" data-cat="g2">2. الدعوم (#9-#20)</button>
+          <button class="cat-tab" data-cat="g3">3. التريدات (#21-#32)</button>
+          <button class="cat-tab" data-cat="g4">4. الكسريات (#33-#40)</button>
+          <button class="cat-tab" data-cat="g5">5. الزخم (#41-#48)</button>
+          <button class="cat-tab" data-cat="g6">6. الزمن (#49-#54)</button>
+          <button class="cat-tab" data-cat="g7">7. المخاطرة (#55-#58)</button>
+          <button class="cat-tab" data-cat="g8">8. النزاهة (#59-#60)</button>
         </div>
       </div>
-    </section>
 
-    <!-- Group 2: Fractal Support Levels (Q9 - Q14) -->
-    <section class="section-card" id="secSupports">
-      <div class="section-header">
-        <div class="section-title">
-          <span>🛡️ 2. مستويات الدعم الكسرية (Fractal Support Levels)</span>
+      <!-- The 60 Questions Vertical Scrollable Container -->
+      <div class="sidebar-scroll-content" id="sidebarScrollContent">
+
+        <!-- ================= GROUP 1: Live Market & Feed (#01 - #08) ================= -->
+        <div class="quant-group" data-group="g1" id="group1">
+          <div class="group-title">
+            <span class="grp-badge">المجموعة 1</span>
+            <span>📡 بيانات السوق اللحظية وشبكة التون (#01 - #08)</span>
+          </div>
+
+          <div class="quant-item" id="item_q1">
+            <div class="q-header">
+              <span class="q-num">#01</span>
+              <span class="q-label">السعر الفوري اللحظي للجرام (Spot Price)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-cyan font-mono" id="val_q1">$1.5165</span>
+              <span class="q-unit">USD</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q2">
+            <div class="q-header">
+              <span class="q-num">#02</span>
+              <span class="q-label">نسبة التغير اليومي (24h Change)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-green font-mono" id="val_q2">+0.99%</span>
+              <span class="q-unit">24H</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q3">
+            <div class="q-header">
+              <span class="q-num">#03</span>
+              <span class="q-label">أعلى سعر خلال 24 ساعة (24h High)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-green font-mono" id="val_q3">$1.5434</span>
+              <span class="q-unit">USD</span>
+            </div>
+          </div>
+
+          <!-- QUESTION 4: 24h Low FIX - Accurate TonAPI Data -->
+          <div class="quant-item item-featured" id="item_q4">
+            <div class="q-header">
+              <span class="q-num featured-num">#04</span>
+              <span class="q-label font-bold">أدنى سعر خلال 24 ساعة (24h Low)</span>
+              <span class="live-dot" title="محدث لحظياً ومثبت من شبكة التون"></span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-cyan font-mono" id="val_q4">$1.4725</span>
+              <span class="q-unit">USD</span>
+            </div>
+            <div class="q-footnote">قاع جلسة الـ 24 ساعة الحقيقي لعملة الجرام (شبكة التون)</div>
+          </div>
+
+          <div class="quant-item" id="item_q5">
+            <div class="q-header">
+              <span class="q-num">#05</span>
+              <span class="q-label">نسبة التغير الأسبوعي (7-Day Diff)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-green font-mono" id="val_q5">+6.64%</span>
+              <span class="q-unit">7D</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q6">
+            <div class="q-header">
+              <span class="q-num">#06</span>
+              <span class="q-label">نسبة التغير الشهري (30-Day Diff)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-green font-mono" id="val_q6">+12.19%</span>
+              <span class="q-unit">30D</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q7">
+            <div class="q-header">
+              <span class="q-num">#07</span>
+              <span class="q-label">مصدر التغذية المعتمد (Live Feed Source)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-muted" style="font-size:0.82rem;" id="val_q7">TonAPI (شبكة التون الرسمية)</span>
+              <span class="q-badge-tag buy">بث رسمي</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q8">
+            <div class="q-header">
+              <span class="q-num">#08</span>
+              <span class="q-label">حجم التداول والسيولة (24h Volume)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value font-mono" id="val_q8">$18,540,200</span>
+              <span class="q-unit">USD</span>
+            </div>
+          </div>
         </div>
-        <div class="section-badge">الأسئلة #9 - #14</div>
+
+        <!-- ================= GROUP 2: Support & Resistance Levels (#09 - #20) ================= -->
+        <div class="quant-group" data-group="g2" id="group2">
+          <div class="group-title">
+            <span class="grp-badge">المجموعة 2</span>
+            <span>📐 مستويات الدعم والمقاومة الكسرية (#09 - #20)</span>
+          </div>
+
+          <div class="quant-item" id="item_q9">
+            <div class="q-header">
+              <span class="q-num">#09</span>
+              <span class="q-label">الدعم الأول اللحظي (Micro Support S1)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-green font-mono" id="val_q9">$1.5020</span>
+              <span class="q-unit">USD</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q10">
+            <div class="q-header">
+              <span class="q-num">#10</span>
+              <span class="q-label">الدعم الثاني اليومي (Intraday Support S2)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-green font-mono" id="val_q10">$1.4880</span>
+              <span class="q-unit">USD</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q11">
+            <div class="q-header">
+              <span class="q-num">#11</span>
+              <span class="q-label">الدعم الثالث المحوري (Confluence S3)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-green font-mono" id="val_q11">$1.4725</span>
+              <span class="q-unit">USD</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q12">
+            <div class="q-header">
+              <span class="q-num">#12</span>
+              <span class="q-label">الدعم الرابع الحاسم (Floor S4)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-green font-mono" id="val_q12">$1.4550</span>
+              <span class="q-unit">USD</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q13">
+            <div class="q-header">
+              <span class="q-num">#13</span>
+              <span class="q-label">المقاومة الأولى اللحظية (Micro Resist R1)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-orange font-mono" id="val_q13">$1.5280</span>
+              <span class="q-unit">USD</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q14">
+            <div class="q-header">
+              <span class="q-num">#14</span>
+              <span class="q-label">المقاومة الثانية المستهدفة (Target Resist R2)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-orange font-mono" id="val_q14">$1.5434</span>
+              <span class="q-unit">USD</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q15">
+            <div class="q-header">
+              <span class="q-num">#15</span>
+              <span class="q-label">المقاومة الثالثة الكبرى (Major Resist R3)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-red font-mono" id="val_q15">$1.5620</span>
+              <span class="q-unit">USD</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q16">
+            <div class="q-header">
+              <span class="q-num">#16</span>
+              <span class="q-label">المقاومة الرابعة التمددية (Extension R4)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-red font-mono" id="val_q16">$1.5850</span>
+              <span class="q-unit">USD</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q17">
+            <div class="q-header">
+              <span class="q-num">#17</span>
+              <span class="q-label">نقطة الارتكاز التوازنية (Pivot Point)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-purple font-mono" id="val_q17">$1.5108</span>
+              <span class="q-unit">USD</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q18">
+            <div class="q-header">
+              <span class="q-num">#18</span>
+              <span class="q-label">المقاومة التمددية القصوى (Extreme R5)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-red font-mono" id="val_q18">$1.6250</span>
+              <span class="q-unit">USD</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q19">
+            <div class="q-header">
+              <span class="q-num">#19</span>
+              <span class="q-label">الدعم العميق للتصحيح (Deep Support S5)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-muted font-mono" id="val_q19">$1.4350</span>
+              <span class="q-unit">USD</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q20">
+            <div class="q-header">
+              <span class="q-num">#20</span>
+              <span class="q-label">النطاق السعري التوازني (Dynamic Range)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value font-mono" id="val_q20">$0.0709</span>
+              <span class="q-unit">USD</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= GROUP 3: Trade Orders & Execution (#21 - #32) ================= -->
+        <div class="quant-group" data-group="g3" id="group3">
+          <div class="group-title">
+            <span class="grp-badge">المجموعة 3</span>
+            <span>🎯 قرارات التداول وأوامر التنفيذ (#21 - #32)</span>
+          </div>
+
+          <div class="quant-item" id="item_q21">
+            <div class="q-header">
+              <span class="q-num">#21</span>
+              <span class="q-label">نوع الصفقة النشطة على الشاشة (Active Mode)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-cyan" id="val_q21">تريد يومي (Intraday)</span>
+              <span class="q-badge-tag buy" id="tag_activeMode">نشط</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q22">
+            <div class="q-header">
+              <span class="q-num">#22</span>
+              <span class="q-label">هدف السكالب اللحظي (Scalp TP)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-green font-mono" id="val_q22">$1.5280</span>
+              <span class="q-unit">+0.76%</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q23">
+            <div class="q-header">
+              <span class="q-num">#23</span>
+              <span class="q-label">وقف خسارة السكالب اللحظي (Scalp SL)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-red font-mono" id="val_q23">$1.5080</span>
+              <span class="q-unit">-0.56%</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q24">
+            <div class="q-header">
+              <span class="q-num">#24</span>
+              <span class="q-label">التوقيت الزمني لإنجاز السكالب (Scalp ETA)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-amber" id="val_q24">⏱️ 15 - 35 دقيقة</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q25">
+            <div class="q-header">
+              <span class="q-num">#25</span>
+              <span class="q-label">سعر الدخول المقترح للجلسة (Optimal Entry)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-blue font-mono" id="val_q25">$1.5120</span>
+              <span class="q-unit">USD</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q26">
+            <div class="q-header">
+              <span class="q-num">#26</span>
+              <span class="q-label">الهدف الأول اليومي (Intraday TP1)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-green font-mono" id="val_q26">$1.5434</span>
+              <span class="q-unit">+1.77%</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q27">
+            <div class="q-header">
+              <span class="q-num">#27</span>
+              <span class="q-label">الهدف الثاني اليومي (Intraday TP2)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-green font-mono" id="val_q27">$1.5620</span>
+              <span class="q-unit">+3.00%</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q28">
+            <div class="q-header">
+              <span class="q-num">#28</span>
+              <span class="q-label">وقف الخسارة اليومي الصارم (Intraday SL)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-red font-mono" id="val_q28">$1.4920</span>
+              <span class="q-unit">-1.62%</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q29">
+            <div class="q-header">
+              <span class="q-num">#29</span>
+              <span class="q-label">التوقيت الزمني لإنجاز الهدف اليومي (ETA)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-amber" id="val_q29">⏱️ 3 - 7 ساعات</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q30">
+            <div class="q-header">
+              <span class="q-num">#30</span>
+              <span class="q-label">القرار والتوصية الكمية (Decision)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-green" id="val_q30">شراء كمي مؤكد</span>
+              <span class="q-badge-tag buy">تمركز صاعد</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q31">
+            <div class="q-header">
+              <span class="q-num">#31</span>
+              <span class="q-label">نسبة العائد إلى المخاطرة (R:R Ratio)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-purple font-mono" id="val_q31">1 : 2.45</span>
+              <span class="q-unit">ممتاز</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q32">
+            <div class="q-header">
+              <span class="q-num">#32</span>
+              <span class="q-label">نسبة النجاح المتوقعة (Probability)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-green font-mono" id="val_q32">92.4%</span>
+              <span class="q-unit">إحصائي</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= GROUP 4: Fractional Dynamics & Market Memory (#33 - #40) ================= -->
+        <div class="quant-group" data-group="g4" id="group4">
+          <div class="group-title">
+            <span class="grp-badge">المجموعة 4</span>
+            <span>🧬 النماذج الكسرية والذاكرة الرياضية (#33 - #40)</span>
+          </div>
+
+          <div class="quant-item" id="item_q33">
+            <div class="q-header">
+              <span class="q-num">#33</span>
+              <span class="q-label">أس هيرست المتدحرج (Hurst Exponent H)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-purple font-mono" id="val_q33">0.682</span>
+              <span class="q-unit">H</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q34">
+            <div class="q-header">
+              <span class="q-num">#34</span>
+              <span class="q-label">نمط الذاكرة الرياضية (Memory Regime)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-cyan" id="val_q34">ذاكرة تمددية (Persistent)</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q35">
+            <div class="q-header">
+              <span class="q-num">#35</span>
+              <span class="q-label">رتبة التفاضل الكسري الأمثل (Fractional d)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value font-mono" id="val_q35">d = 0.182</span>
+              <span class="q-unit">ثابت</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q36">
+            <div class="q-header">
+              <span class="q-num">#36</span>
+              <span class="q-label">البعد الكسري لمنحنى السعر (Fractal Dim D)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value font-mono" id="val_q36">1.318</span>
+              <span class="q-unit">D</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q37">
+            <div class="q-header">
+              <span class="q-num">#37</span>
+              <span class="q-label">تسارع الذاكرة الكسرية (Memory Accel)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-green font-mono" id="val_q37">+0.0034</span>
+              <span class="q-unit">تسارع</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q38">
+            <div class="q-header">
+              <span class="q-num">#38</span>
+              <span class="q-label">معامل كوفمان لكفاءة الاتجاه (Kaufman ER)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value font-mono" id="val_q38">0.645</span>
+              <span class="q-unit">كفاءة عالية</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q39">
+            <div class="q-header">
+              <span class="q-num">#39</span>
+              <span class="q-label">احتمالية استمرار الاتجاه الصاعد (Continuation)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-green font-mono" id="val_q39">74.2%</span>
+              <span class="q-unit">صعود</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q40">
+            <div class="q-header">
+              <span class="q-num">#40</span>
+              <span class="q-label">احتمالية حدوث تصحيح انعكاسي (Reversal Risk)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-red font-mono" id="val_q40">25.8%</span>
+              <span class="q-unit">منخفضة</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= GROUP 5: Momentum, Volatility & Liquidity (#41 - #48) ================= -->
+        <div class="quant-group" data-group="g5" id="group5">
+          <div class="group-title">
+            <span class="grp-badge">المجموعة 5</span>
+            <span>⚡ الزخم ومؤشرات التذبذب والسيولة (#41 - #48)</span>
+          </div>
+
+          <div class="quant-item" id="item_q41">
+            <div class="q-header">
+              <span class="q-num">#41</span>
+              <span class="q-label">مؤشر القوة النسبية RSI(14) اللحظي</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-purple font-mono" id="val_q41">58.4</span>
+              <span class="q-unit">RSI</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q42">
+            <div class="q-header">
+              <span class="q-num">#42</span>
+              <span class="q-label">حالة الزخم اللحظي (Momentum State)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-green" id="val_q42">إيجابي معتدل (صحي)</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q43">
+            <div class="q-header">
+              <span class="q-num">#43</span>
+              <span class="q-label">نطاق بولينجر العلوي (Upper Bollinger Band)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-cyan font-mono" id="val_q43">$1.5420</span>
+              <span class="q-unit">USD</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q44">
+            <div class="q-header">
+              <span class="q-num">#44</span>
+              <span class="q-label">نطاق بولينجر الأوسط (SMA20 Middle Band)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-blue font-mono" id="val_q44">$1.5120</span>
+              <span class="q-unit">USD</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q45">
+            <div class="q-header">
+              <span class="q-num">#45</span>
+              <span class="q-label">نطاق بولينجر السفلي (Lower Bollinger Band)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-cyan font-mono" id="val_q45">$1.4820</span>
+              <span class="q-unit">USD</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q46">
+            <div class="q-header">
+              <span class="q-num">#46</span>
+              <span class="q-label">عرض نطاق بولينجر (Bollinger Bandwidth)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value font-mono" id="val_q46">3.96%</span>
+              <span class="q-unit">تمدد</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q47">
+            <div class="q-header">
+              <span class="q-num">#47</span>
+              <span class="q-label">انحراف السعر المعياري (Std Dev 20)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value font-mono" id="val_q47">0.0150</span>
+              <span class="q-unit">σ</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q48">
+            <div class="q-header">
+              <span class="q-num">#48</span>
+              <span class="q-label">متوسط المدى الحقيقي (ATR Local Volatility)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value font-mono" id="val_q48">$0.0260</span>
+              <span class="q-unit">ATR</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= GROUP 6: Temporal Matrix & Price Physics (#49 - #54) ================= -->
+        <div class="quant-group" data-group="g6" id="group6">
+          <div class="group-title">
+            <span class="grp-badge">المجموعة 6</span>
+            <span>⏳ مصفوفة الزمن والفيزياء السعرية (#49 - #54)</span>
+          </div>
+
+          <div class="quant-item" id="item_q49">
+            <div class="q-header">
+              <span class="q-num">#49</span>
+              <span class="q-label">سرعة تغير السعر لكل ساعة (Price-Time Velocity)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-green font-mono" id="val_q49">+0.0062 $/h</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q50">
+            <div class="q-header">
+              <span class="q-num">#50</span>
+              <span class="q-label">نافذة الانعكاس الزمني القادمة (Time Pivot Window)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-amber" id="val_q50">خلال 3 - 5 ساعات</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q51">
+            <div class="q-header">
+              <span class="q-num">#51</span>
+              <span class="q-label">هدف موجة السوينغ الكبرى (Swing Target TP1)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-green font-mono" id="val_q51">$1.6250</span>
+              <span class="q-unit">+7.15%</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q52">
+            <div class="q-header">
+              <span class="q-num">#52</span>
+              <span class="q-label">هدف السوينغ التمددي الثاني (Swing TP2)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-green font-mono" id="val_q52">$1.6850</span>
+              <span class="q-unit">+11.11%</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q53">
+            <div class="q-header">
+              <span class="q-num">#53</span>
+              <span class="q-label">وقف خسارة السوينغ الهيكلي (Structural SL)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-red font-mono" id="val_q53">$1.4650</span>
+              <span class="q-unit">-3.40%</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q54">
+            <div class="q-header">
+              <span class="q-num">#54</span>
+              <span class="q-label">الوقت المقدر لإكمال موجة السوينغ (Swing ETA)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-amber" id="val_q54">⏱️ 24 - 48 ساعة</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= GROUP 7: Risk Management & Capital Allocation (#55 - #58) ================= -->
+        <div class="quant-group" data-group="g7" id="group7">
+          <div class="group-title">
+            <span class="grp-badge">المجموعة 7</span>
+            <span>🛡️ إدارة رأس المال والمخاطرة (#55 - #58)</span>
+          </div>
+
+          <div class="quant-item" id="item_q55">
+            <div class="q-header">
+              <span class="q-num">#55</span>
+              <span class="q-label">حجم التمركز الموصى به (Fractional Kelly Size)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-green font-mono" id="val_q55">8.5% من المحفظة</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q56">
+            <div class="q-header">
+              <span class="q-num">#56</span>
+              <span class="q-label">أقصى مخاطرة مقبولة لكل 1000$ (Max Dollar Risk)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-red font-mono" id="val_q56">$16.20</span>
+              <span class="q-unit">لكل 1000$</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q57">
+            <div class="q-header">
+              <span class="q-num">#57</span>
+              <span class="q-label">الربح المتوقع بالدولار عند الهدف (Expected Gain)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-green font-mono" id="val_q57">+$31.00</span>
+              <span class="q-unit">لكل 1000$</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q58">
+            <div class="q-header">
+              <span class="q-num">#58</span>
+              <span class="q-label">درجة الأمان والمخاطرة المركبة (Risk Score)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-green font-mono" id="val_q58">منخفضة (A+)</span>
+              <span class="q-badge-tag buy">آمن</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= GROUP 8: Empirical Validation & Integrity (#59 - #60) ================= -->
+        <div class="quant-group" data-group="g8" id="group8">
+          <div class="group-title">
+            <span class="grp-badge">المجموعة 8</span>
+            <span>⚖️ التحقق التجريبي والنزاهة الرياضية (#59 - #60)</span>
+          </div>
+
+          <div class="quant-item" id="item_q59">
+            <div class="q-header">
+              <span class="q-num">#59</span>
+              <span class="q-label">معامل النزاهة الرياضية (Zero-Overfit Score)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value text-purple font-mono" id="val_q59">98.9%</span>
+              <span class="q-unit">مطابق للسوق</span>
+            </div>
+          </div>
+
+          <div class="quant-item" id="item_q60">
+            <div class="q-header">
+              <span class="q-num">#60</span>
+              <span class="q-label">إجمالي التحديثات اللحظية المنفذة (Tick Updates)</span>
+            </div>
+            <div class="q-data">
+              <span class="q-value font-mono" id="val_q60">#1</span>
+              <span class="q-unit">تحديث حي</span>
+            </div>
+          </div>
+        </div>
+
       </div>
-      <div class="questions-grid">
-        <div class="q-item" id="q9">
-          <div class="q-top">
-            <span class="q-num">#09</span>
-            <span class="q-desc">الدعم الأول اللحظي (Support S1 - Micro)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q9">$1.3745</span>
-            <span class="q-tag badge-buy">دعم لحظي</span>
-          </div>
+    </aside>
+
+    <!-- =========================================================================
+         LEFT PANEL: Pro Trading Chart Viewport (الناحية اليسار - ثلثين الشاشة)
+         ========================================================================= -->
+    <section class="chart-panel-container" id="chartPanelContainer">
+
+      <!-- Chart Toolbar (Horizons, Timeframes, Indicators & Toggle) -->
+      <div class="chart-top-toolbar" id="chartToolbar">
+
+        <!-- Sidebar Collapse / Expand Toggle Button on Chart Toolbar -->
+        <button class="toolbar-toggle-btn" id="btnToggleSidebarBar" title="إظهار / إخفاء قائمة المؤشرات لتوسيع الشارت">
+          <span id="toolbarToggleIcon">◀</span>
+          <span id="toolbarToggleText">إخفاء القائمة</span>
+        </button>
+
+        <div class="toolbar-divider"></div>
+
+        <!-- Trade Horizon Switcher (Primary Strategy Selector) -->
+        <div class="horizon-switch-group" role="tablist" aria-label="اختر نوع الصفقة">
+          <button class="horizon-btn" id="btnHorizonScalp" data-horizon="scalp" title="مضاربة تكات سريعة (1م - 5م)">
+            <span class="hz-icon">⚡</span>
+            <span class="hz-name">سكالب فائق السرعة</span>
+            <span class="hz-time" id="hzBadgeScalp">15-35 د</span>
+          </button>
+
+          <button class="horizon-btn active" id="btnHorizonIntraday" data-horizon="intraday" title="تريد الجلسة اليومية (15م - 1س)">
+            <span class="hz-icon">🎯</span>
+            <span class="hz-name">تريد يومي سريع</span>
+            <span class="hz-time" id="hzBadgeIntraday">3-7 س</span>
+          </button>
+
+          <button class="horizon-btn" id="btnHorizonSwing" data-horizon="swing" title="سوينغ الموجة الكبرى (4س - 1ي)">
+            <span class="hz-icon">🌊</span>
+            <span class="hz-name">سوينغ وموجات</span>
+            <span class="hz-time" id="hzBadgeSwing">24-48 س</span>
+          </button>
         </div>
 
-        <div class="q-item" id="q10">
-          <div class="q-top">
-            <span class="q-num">#10</span>
-            <span class="q-desc">الدعم الثاني اليومي (Support S2 - Intraday)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q10">$1.3680</span>
-            <span class="q-tag badge-buy">دعم يومي</span>
-          </div>
+        <div class="toolbar-divider"></div>
+
+        <!-- Timeframe Buttons -->
+        <div class="timeframe-buttons" id="timeframeButtons">
+          <button class="tf-btn" data-tf="1m">1د</button>
+          <button class="tf-btn" data-tf="5m">5د</button>
+          <button class="tf-btn active" data-tf="15m">15د</button>
+          <button class="tf-btn" data-tf="1h">1س</button>
+          <button class="tf-btn" data-tf="4h">4س</button>
+          <button class="tf-btn" data-tf="1d">1ي</button>
         </div>
 
-        <div class="q-item" id="q11">
-          <div class="q-top">
-            <span class="q-num">#11</span>
-            <span class="q-desc">الدعم الثالث المحوري (Support S3 - Pivot)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q11">$1.3615</span>
-            <span class="q-tag badge-buy">محور ارتداد</span>
-          </div>
-        </div>
+        <div class="toolbar-divider"></div>
 
-        <div class="q-item" id="q12">
-          <div class="q-top">
-            <span class="q-num">#12</span>
-            <span class="q-desc">الدعم الرابع الهيكلي (Support S4 - Structural)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q12">$1.3520</span>
-            <span class="q-tag badge-buy">جدار أمان</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q13">
-          <div class="q-top">
-            <span class="q-num">#13</span>
-            <span class="q-desc">الدعم الخامس المؤسسي (Support S5 - Floor)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q13">$1.3395</span>
-            <span class="q-tag badge-buy">قاع مؤسسي</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q14">
-          <div class="q-top">
-            <span class="q-num">#14</span>
-            <span class="q-desc">الدعم السادس الأقصى (Support S6 - Tail)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q14">$1.3210</span>
-            <span class="q-tag badge-buy">أدنى قاع</span>
-          </div>
+        <!-- Indicator & Style Toggles -->
+        <div class="indicator-toggles" id="indicatorToggles">
+          <button class="toggle-btn active" id="toggleBollinger" title="إظهار / إخفاء نطاقات بولينجر">
+            <span class="t-icon">〰️</span>
+            <span>بولينجر</span>
+          </button>
+          <button class="toggle-btn active" id="toggleSR" title="إظهار / إخفاء مستويات الدعم والمقاومة R1-R3 و S1-S3">
+            <span class="t-icon">📏</span>
+            <span>الدعوم والمقاومات</span>
+          </button>
+          <button class="toggle-btn active" id="toggleTargets" title="إظهار / إخفاء خطوط الأهداف والوقف">
+            <span class="t-icon">🎯</span>
+            <span>الهدف والوقف</span>
+          </button>
+          <button class="toggle-btn active" id="toggleRSI" title="إظهار / إخفاء نافذة مؤشر RSI">
+            <span class="t-icon">📉</span>
+            <span>RSI(14)</span>
+          </button>
+          <button class="toggle-btn" id="toggleChartType" title="التبديل بين الشموع اليابانية والمساحة">
+            <span class="t-icon">🕯️</span>
+            <span id="chartTypeLabel">شموع</span>
+          </button>
         </div>
       </div>
-    </section>
 
-    <!-- Group 3: Fractal Resistance & Targets (Q15 - Q20) -->
-    <section class="section-card" id="secResistances">
-      <div class="section-header">
-        <div class="section-title">
-          <span>🎯 3. مستويات المقاومة والأهداف الكسرية (Resistance & Targets)</span>
-        </div>
-        <div class="section-badge">الأسئلة #15 - #20</div>
-      </div>
-      <div class="questions-grid">
-        <div class="q-item" id="q15">
-          <div class="q-top">
-            <span class="q-num">#15</span>
-            <span class="q-desc">المقاومة الأولى اللحظية (Resistance R1)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-gold" id="val_q15">$1.3870</span>
-            <span class="q-tag badge-hold">هدف سريع</span>
-          </div>
+      <!-- Interactive Chart HUD (Answers 20 core questions right on the chart) -->
+      <div class="chart-hud-overlay" id="chartHudOverlay">
+        <!-- Live Decision Banner -->
+        <div class="hud-item hud-decision" id="hudDecisionItem">
+          <div class="hud-label">القرار الكمي المباشر</div>
+          <div class="hud-val text-green" id="hudDecisionVal">شراء كمي مؤكد</div>
+          <div class="hud-sub" id="hudDecisionSub">نسبة النجاح: 92.4% | R:R = 1:2.45</div>
         </div>
 
-        <div class="q-item" id="q16">
-          <div class="q-top">
-            <span class="q-num">#16</span>
-            <span class="q-desc">المقاومة الثانية (Resistance R2 - TP1)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-gold" id="val_q16">$1.3935</span>
-            <span class="q-tag badge-buy">هدف 1</span>
-          </div>
+        <!-- Target TP Level -->
+        <div class="hud-item">
+          <div class="hud-label">هدف الصفقة (Take Profit)</div>
+          <div class="hud-val text-green font-mono" id="hudTPVal">$1.5434</div>
+          <div class="hud-sub text-green" id="hudTPSub">+1.77% (⏱️ 3-5 ساعات)</div>
         </div>
 
-        <div class="q-item" id="q17">
-          <div class="q-top">
-            <span class="q-num">#17</span>
-            <span class="q-desc">المقاومة الثالثة (Resistance R3 - TP2)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-gold" id="val_q17">$1.4020</span>
-            <span class="q-tag badge-buy">هدف 2</span>
-          </div>
+        <!-- Stop Loss Level -->
+        <div class="hud-item">
+          <div class="hud-label">وقف الخسارة الصارم (SL)</div>
+          <div class="hud-val text-red font-mono" id="hudSLVal">$1.4920</div>
+          <div class="hud-sub text-red" id="hudSLSub">-1.62% (حماية رأس المال)</div>
         </div>
 
-        <div class="q-item" id="q18">
-          <div class="q-top">
-            <span class="q-num">#18</span>
-            <span class="q-desc">المقاومة الرابعة (Resistance R4 - TP3)</span>
+        <!-- Resistances R1, R2, R3 -->
+        <div class="hud-item">
+          <div class="hud-label">المقاومات (R1 / R2 / R3)</div>
+          <div class="hud-val font-mono" style="font-size:0.85rem;">
+            <span class="text-orange" id="hudR1">$1.528</span> |
+            <span class="text-orange" id="hudR2">$1.543</span> |
+            <span class="text-red" id="hudR3">$1.562</span>
           </div>
-          <div class="q-val-row">
-            <span class="q-val text-gold" id="val_q18">$1.4125</span>
-            <span class="q-tag badge-buy">هدف 3</span>
-          </div>
+          <div class="hud-sub">محطات جني الأرباح والتصريف</div>
         </div>
 
-        <div class="q-item" id="q19">
-          <div class="q-top">
-            <span class="q-num">#19</span>
-            <span class="q-desc">المقاومة الخامسة الكبرى (Resistance R5)</span>
+        <!-- Supports S1, S2, S3 -->
+        <div class="hud-item">
+          <div class="hud-label">الدعوم (S1 / S2 / S3)</div>
+          <div class="hud-val font-mono" style="font-size:0.85rem;">
+            <span class="text-cyan" id="hudS1">$1.502</span> |
+            <span class="text-green" id="hudS2">$1.488</span> |
+            <span class="text-green" id="hudS3">$1.472</span>
           </div>
-          <div class="q-val-row">
-            <span class="q-val text-gold" id="val_q19">$1.4280</span>
-            <span class="q-tag badge-buy">تمدد كسري</span>
-          </div>
+          <div class="hud-sub">مناطق التمركز والارتداد الآمن</div>
         </div>
 
-        <div class="q-item" id="q20">
-          <div class="q-top">
-            <span class="q-num">#20</span>
-            <span class="q-desc">المقاومة السادسة القصوى (Resistance R6)</span>
+        <!-- 24h Low & High Check (Immediate verification of Q4 & Q3) -->
+        <div class="hud-item highlight">
+          <div class="hud-label">قاع وقمة 24 ساعة (#03 و #04)</div>
+          <div class="hud-val font-mono" style="font-size:0.85rem;">
+            <span class="text-cyan font-bold" id="hudLow24h" title="السؤال #04: أدنى سعر">$1.4725</span>
+            <span style="color:#64748b;"> ⟷ </span>
+            <span class="text-green font-bold" id="hudHigh24h" title="السؤال #03: أعلى سعر">$1.5434</span>
           </div>
-          <div class="q-val-row">
-            <span class="q-val text-gold" id="val_q20">$1.4450</span>
-            <span class="q-tag badge-buy">أقصى امتداد</span>
+          <div class="hud-sub" id="hudRangeSub">نطاق التذبذب: $0.0709 (4.68%)</div>
+        </div>
+
+        <!-- Technical Momentum (RSI + Bollinger) -->
+        <div class="hud-item">
+          <div class="hud-label">مؤشرات الزخم والسيولة</div>
+          <div class="hud-val font-mono" style="font-size:0.85rem;">
+            <span id="hudRsiVal" class="text-purple">RSI: 58.4</span> |
+            <span id="hudBandwidthVal" class="text-blue">عرض BB: 3.96%</span>
           </div>
+          <div class="hud-sub" id="hudRegimeSub">زخم شرائي صحي فوق خط الارتكاز</div>
         </div>
       </div>
-    </section>
 
-    <!-- Group 4: Ultra-Fast & Fast Trades (Q21 - Q30) -->
-    <section class="section-card" id="secFastTrades">
-      <div class="section-header">
-        <div class="section-title">
-          <span>⚡ 4. صفقات التداول اللحظي والسريع (Scalping & Fast Trades)</span>
-        </div>
-        <div class="section-badge">الأسئلة #21 - #30</div>
+      <!-- Primary Canvas Graphic Area -->
+      <div class="chart-canvas-wrapper" id="chartCanvasWrapper">
+        <canvas id="mainChartCanvas"></canvas>
+        <div class="chart-crosshair-tooltip" id="crosshairTooltip"></div>
+        <div class="canvas-watermark">GRAM / USD • THE OPEN NETWORK (TON)</div>
       </div>
-      <div class="questions-grid">
-        <div class="q-item" id="q21">
-          <div class="q-top">
-            <span class="q-num">#21</span>
-            <span class="q-desc">مضاربة فائقة السرعة - سعر الدخول (Entry)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-blue" id="val_q21">$1.3795</span>
-            <span class="q-unit">Scalp In</span>
-          </div>
-        </div>
 
-        <div class="q-item" id="q22">
-          <div class="q-top">
-            <span class="q-num">#22</span>
-            <span class="q-desc">مضاربة فائقة السرعة - جني الأرباح (TP)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q22">$1.3890</span>
-            <span class="q-unit">+0.69%</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q23">
-          <div class="q-top">
-            <span class="q-num">#23</span>
-            <span class="q-desc">مضاربة فائقة السرعة - وقف الخسارة (SL)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-red" id="val_q23">$1.3735</span>
-            <span class="q-unit">-0.43%</span>
+      <!-- Secondary Sub-Panel: RSI(14) Canvas -->
+      <div class="rsi-canvas-wrapper" id="rsiCanvasWrapper">
+        <div class="sub-panel-header">
+          <span class="sub-panel-title">📉 مؤشر القوة النسبية RSI(14) اللحظي</span>
+          <div class="rsi-meta">
+            <span class="rsi-tag overbought">ذروة شراء (70)</span>
+            <span class="rsi-tag oversold">ذروة بيع (30)</span>
+            <span class="rsi-curr font-mono" id="rsiCurrentBadge">RSI: 58.4</span>
           </div>
         </div>
-
-        <div class="q-item" id="q24">
-          <div class="q-top">
-            <span class="q-num">#24</span>
-            <span class="q-desc">مضاربة فائقة السرعة - الإشارة (Signal)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q24">شراء سريع (Scalp Buy)</span>
-            <span class="q-tag badge-buy">دخول</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q25">
-          <div class="q-top">
-            <span class="q-num">#25</span>
-            <span class="q-desc">صفقة سريعة (ساعة-يوم) - نقطة الدخول (Entry)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-blue" id="val_q25">$1.3780</span>
-            <span class="q-unit">Best In</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q26">
-          <div class="q-top">
-            <span class="q-num">#26</span>
-            <span class="q-desc">صفقة سريعة - جني الأرباح الأول (TP1)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q26">$1.4085</span>
-            <span class="q-unit">+2.01%</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q27">
-          <div class="q-top">
-            <span class="q-num">#27</span>
-            <span class="q-desc">صفقة سريعة - جني الأرباح الثاني (TP2)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q27">$1.4240</span>
-            <span class="q-unit">+3.14%</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q28">
-          <div class="q-top">
-            <span class="q-num">#28</span>
-            <span class="q-desc">صفقة سريعة - وقف الخسارة الحاسم (SL)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-red" id="val_q28">$1.3650</span>
-            <span class="q-unit">-1.14%</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q29">
-          <div class="q-top">
-            <span class="q-num">#29</span>
-            <span class="q-desc">صفقة سريعة - نسبة العائد للمخاطرة (R:R)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-cyan" id="val_q29">1 : 2.35</span>
-            <span class="q-tag badge-buy">ممتاز</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q30">
-          <div class="q-top">
-            <span class="q-num">#30</span>
-            <span class="q-desc">صفقة سريعة - التوصية الرسمية (Signal)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q30">شراء كمي مؤكد</span>
-            <span class="q-tag badge-buy">BUY</span>
-          </div>
-        </div>
+        <canvas id="rsiCanvas"></canvas>
       </div>
-    </section>
 
-    <!-- Group 5: Medium Swing & Position Sizing (Q31 - Q35) -->
-    <section class="section-card" id="secMediumTrades">
-      <div class="section-header">
-        <div class="section-title">
-          <span>📊 5. صفقات التداول المتوسط وإدارة المحفظة (Swing & Risk)</span>
+      <!-- Quick Execution Bottom Helper Bar -->
+      <div class="chart-footer-bar">
+        <div class="footer-summary-item">
+          <span>⚡ سرعة السعر بالزمن: <strong class="font-mono text-cyan" id="chartVelocityVal">+0.0062 $/h</strong></span>
         </div>
-        <div class="section-badge">الأسئلة #31 - #35</div>
-      </div>
-      <div class="questions-grid">
-        <div class="q-item" id="q31">
-          <div class="q-top">
-            <span class="q-num">#31</span>
-            <span class="q-desc">صفقة متوسطة (سوينغ) - سعر التجميع (Entry)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-blue" id="val_q31">$1.3650 - $1.3780</span>
-            <span class="q-unit">نطاق تجميع</span>
-          </div>
+        <div class="footer-summary-item">
+          <span>⏳ نافذة الانعكاس الزمني: <strong class="font-mono text-amber" id="chartTimePivotVal">خلال 3 - 5 ساعات</strong></span>
         </div>
-
-        <div class="q-item" id="q32">
-          <div class="q-top">
-            <span class="q-num">#32</span>
-            <span class="q-desc">صفقة متوسطة - هدف التمدد الكسري (Target)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q32">$1.4480</span>
-            <span class="q-unit">+4.87%</span>
-          </div>
+        <div class="footer-summary-item">
+          <span>🎯 التمركز المقترح (كيلي): <strong class="font-mono text-green" id="chartKellyVal">8.5% من المحفظة</strong></span>
         </div>
-
-        <div class="q-item" id="q33">
-          <div class="q-top">
-            <span class="q-num">#33</span>
-            <span class="q-desc">صفقة متوسطة - وقف الخسارة البنيوي (SL)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-red" id="val_q33">$1.3490</span>
-            <span class="q-unit">-2.30%</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q34">
-          <div class="q-top">
-            <span class="q-num">#34</span>
-            <span class="q-desc">صفقة متوسطة - التوصية الاستثمارية (Signal)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q34">تجميع استثماري (Accumulate)</span>
-            <span class="q-tag badge-buy">تجميع</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q35">
-          <div class="q-top">
-            <span class="q-num">#35</span>
-            <span class="q-desc">حجم الصفقة الموصى به من رأس المال (Size)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-gold" id="val_q35">4.5% - 6.0%</span>
-            <span class="q-unit">حماية رأس المال</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Group 6: Fractional Memory & Hurst Exponent (Q36 - Q43) -->
-    <section class="section-card" id="secMemoryHurst">
-      <div class="section-header">
-        <div class="section-title">
-          <span>🧠 6. فيزياء الذاكرة الكسرية ومعامل هيرست (Hurst Dynamics)</span>
-        </div>
-        <div class="section-badge">الأسئلة #36 - #43</div>
-      </div>
-      <div class="questions-grid">
-        <div class="q-item" id="q36">
-          <div class="q-top">
-            <span class="q-num">#36</span>
-            <span class="q-desc">معامل هيرست المتدحرج للجرام (Hurst Exponent)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-cyan" id="val_q36">H = 0.642</span>
-            <span class="q-unit">Rolling H</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q37">
-          <div class="q-top">
-            <span class="q-num">#37</span>
-            <span class="q-desc">حالة ذاكرة السوق (Memory Regime)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q37">Persistent (اتجاهي استمراري)</span>
-            <span class="q-tag badge-buy">H > 0.5</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q38">
-          <div class="q-top">
-            <span class="q-num">#38</span>
-            <span class="q-desc">رتبة التفاضل الكسري الأمثل (Order d = H - 0.5)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-gold" id="val_q38">d = +0.142</span>
-            <span class="q-unit">Fractional</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q39">
-          <div class="q-top">
-            <span class="q-num">#39</span>
-            <span class="q-desc">تسارع الذاكرة الكسرية (Fractional Velocity)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q39">+0.0034 D^d Xt</span>
-            <span class="q-unit">تسارع إيجابي</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q40">
-          <div class="q-top">
-            <span class="q-num">#40</span>
-            <span class="q-desc">مؤشر الزخم الكسري اللحظي (Fractal Momentum)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q40">+1.28</span>
-            <span class="q-unit">زخم صاعد</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q41">
-          <div class="q-top">
-            <span class="q-num">#41</span>
-            <span class="q-desc">البعد الكسري للمسار (Fractal Dimension D)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-cyan" id="val_q41">D = 1.358</span>
-            <span class="q-unit">مسار سلس</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q42">
-          <div class="q-top">
-            <span class="q-num">#42</span>
-            <span class="q-desc">احتمالية اختراق المقاومة R1 (Breakout Prob)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q42">68.4%</span>
-            <span class="q-tag badge-buy">احتمال مرتفع</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q43">
-          <div class="q-top">
-            <span class="q-num">#43</span>
-            <span class="q-desc">احتمالية الارتداد من الدعم S1 (Rebound Prob)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q43">74.2%</span>
-            <span class="q-tag badge-buy">ارتداد قوي</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Group 7: Fibonacci Confluence Matrix (Q44 - Q50) -->
-    <section class="section-card" id="secFibonacci">
-      <div class="section-header">
-        <div class="section-title">
-          <span>📐 7. مصفوفة فيبوناتشي التوافقية (Fibonacci Confluence Matrix)</span>
-        </div>
-        <div class="section-badge">الأسئلة #44 - #50</div>
-      </div>
-      <div class="questions-grid">
-        <div class="q-item" id="q44">
-          <div class="q-top">
-            <span class="q-num">#44</span>
-            <span class="q-desc">تصحيح فيبوناتشي 23.6% (Fib 0.236 Retracement)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-gold" id="val_q44">$1.3823</span>
-            <span class="q-unit">تصحيح أولي</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q45">
-          <div class="q-top">
-            <span class="q-num">#45</span>
-            <span class="q-desc">تصحيح فيبوناتشي 38.2% (Fib 0.382 Golden Step)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-gold" id="val_q45">$1.3764</span>
-            <span class="q-unit">منطقة ارتداد</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q46">
-          <div class="q-top">
-            <span class="q-num">#46</span>
-            <span class="q-desc">نقطة التوازن المحورية 50.0% (Fib 0.500 Pivot)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-cyan" id="val_q46">$1.3717</span>
-            <span class="q-unit">محور التوازن</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q47">
-          <div class="q-top">
-            <span class="q-num">#47</span>
-            <span class="q-desc">النسبة الذهبية المؤسسية 61.8% (Fib 0.618 Pocket)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-gold" id="val_q47">$1.3670</span>
-            <span class="q-tag badge-buy">الجيب الذهبي</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q48">
-          <div class="q-top">
-            <span class="q-num">#48</span>
-            <span class="q-desc">تصحيح الخصم العميق 78.6% (Fib 0.786 Deep)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-gold" id="val_q48">$1.3602</span>
-            <span class="q-unit">خصم عميق</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q49">
-          <div class="q-top">
-            <span class="q-num">#49</span>
-            <span class="q-desc">امتداد فيبوناتشي 127.2% (Fib 1.272 Expansion)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q49">$1.4026</span>
-            <span class="q-unit">هدف امتداد 1</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q50">
-          <div class="q-top">
-            <span class="q-num">#50</span>
-            <span class="q-desc">الامتداد الذهبي 161.8% (Fib 1.618 Target)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q50">$1.4165</span>
-            <span class="q-tag badge-buy">الهدف الذهبي</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Group 8: Momentum, Volatility & Confidence Score (Q51 - Q60) -->
-    <section class="section-card" id="secIndicators">
-      <div class="section-header">
-        <div class="section-title">
-          <span>📈 8. التذبذب والقوة النسبية والتقييم الكمي (Volatility & Score)</span>
-        </div>
-        <div class="section-badge">الأسئلة #51 - #60</div>
-      </div>
-      <div class="questions-grid">
-        <div class="q-item" id="q51">
-          <div class="q-top">
-            <span class="q-num">#51</span>
-            <span class="q-desc">مؤشر القوة النسبية الكسري (Fractal RSI 14)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-cyan" id="val_q51">54.8</span>
-            <span class="q-unit">RSI [0-100]</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q52">
-          <div class="q-top">
-            <span class="q-num">#52</span>
-            <span class="q-desc">حالة القوة النسبية (RSI Condition)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q52">منطقة إيجابية صحية (Healthy Bullish)</span>
-            <span class="q-tag badge-buy">لا تشبع</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q53">
-          <div class="q-top">
-            <span class="q-num">#53</span>
-            <span class="q-desc">نطاق التذبذب الحقيقي اللحظي (ATR Volatility)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-gold" id="val_q53">0.0185 USD</span>
-            <span class="q-unit">نطاق شمعة</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q54">
-          <div class="q-top">
-            <span class="q-num">#54</span>
-            <span class="q-desc">نسبة التذبذب الكسري المئوية (Fractal Vol %)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-gold" id="val_q54">1.34%</span>
-            <span class="q-unit">تذبذب متوسط</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q55">
-          <div class="q-top">
-            <span class="q-num">#55</span>
-            <span class="q-desc">بعد السعر عن نقطة الارتكاز المحورية (Pivot Dist)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q55">+0.65% فوق المحور</span>
-            <span class="q-unit">Bullish Buffer</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q56">
-          <div class="q-top">
-            <span class="q-num">#56</span>
-            <span class="q-desc">مسافة السعر المتبقية للهدف الأول (Distance to TP1)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q56">+2.01% (0.0278$)</span>
-            <span class="q-unit">متبقي للهدف</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q57">
-          <div class="q-top">
-            <span class="q-num">#57</span>
-            <span class="q-desc">مسافة السعر المتبقية لوقف الخسارة (Distance to SL)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-red" id="val_q57">-1.14% (0.0157$)</span>
-            <span class="q-unit">حاجز الأمان</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q58">
-          <div class="q-top">
-            <span class="q-num">#58</span>
-            <span class="q-desc">اتجاه ضغط السيولة الصافي (Net Order Flow)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" id="val_q58">تدفق شرائي إيجابي (+62%)</span>
-            <span class="q-tag badge-buy">شراء</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q59">
-          <div class="q-top">
-            <span class="q-num">#59</span>
-            <span class="q-desc">كفاءة الحركة الاتجاهية (Kaufman Efficiency)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-cyan" id="val_q59">ER = 0.58</span>
-            <span class="q-unit">اتجاه منظم</span>
-          </div>
-        </div>
-
-        <div class="q-item" id="q60">
-          <div class="q-top">
-            <span class="q-num">#60</span>
-            <span class="q-desc">النتيجة الكمية الكلية ودقة التوقع (Confidence Score)</span>
-          </div>
-          <div class="q-val-row">
-            <span class="q-val text-green" style="font-size: 1.35rem;" id="val_q60">91.8 / 100</span>
-            <span class="q-tag badge-buy">دقة عالية >90%</span>
-          </div>
+        <div class="footer-summary-item">
+          <span id="chartLastTick">آخر تحديث: قبل ثانية واحدة</span>
         </div>
       </div>
     </section>
 
   </main>
-
-  <!-- Clean Quantitative Footer -->
-  <footer class="calc-footer" id="calcFooter">
-    <div class="footer-credits">
-      محرك فيبوساين للذاكرة الكسرية (FiboSign Fractal Engine) - م. سامح ياسين
-    </div>
-    <div class="refresh-timer" id="lastUpdatedStatus">
-      آخر تحديث: جاري التحميل...
-    </div>
-  </footer>
 
   <script src="./script.js"></script>
 </body>
